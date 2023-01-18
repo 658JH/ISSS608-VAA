@@ -1,0 +1,21 @@
+Dear Prof KAM,
+
+Please refer to below for my take home exercise 1 submission. thanks
+
+1. Analytical Visualisation on Tableau Public
+
+   https://public.tableau.com/app/profile/jerry.hou/viz/Takehome_Ex01/SG2022PopulationbyAgeGroup_1?publish=yes
+   
+   https://public.tableau.com/app/profile/jerry.hou/viz/Takehome_Ex01/SG2022PopulationbyAgeGroupforTODandSubZone_1?publish=yes
+   
+   
+2. Write-up on Netlify
+
+   https://isss608-vaa-ht.netlify.app/takehome_ex/takehome_ex01/takehome_ex01
+
+
+3. Github repository
+
+   https://github.com/658JH/ISSS608-VAA/tree/master/Takehome_Ex/Takehome_Ex01
+   
+
