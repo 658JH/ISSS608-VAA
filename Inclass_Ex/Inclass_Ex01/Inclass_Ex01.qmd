@@ -1,0 +1,10 @@
+---
+title: "Inclass_Ex01"
+author: "Hou Tao"
+---
+
+## Getting Started
+
+#### Link to Tableau Publish
+
+https://public.tableau.com/app/profile/jerry.hou/viz/In-class_Ex01_16736796163560/Dashboard1

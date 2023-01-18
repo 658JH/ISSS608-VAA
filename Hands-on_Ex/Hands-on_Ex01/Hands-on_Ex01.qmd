@@ -1,0 +1,459 @@
+---
+title: "Hands-on Exercise 1"
+author: "Hou Tao"
+---
+
+## Getting Started
+
+##### Install and Launching R packages
+
+The code chunk below use p_load of pacman package to check if tidyverse packages are installed in te environment, it will luanch it into R if it has been installed.
+
+```{r}
+
+pacman::p_load(tidyverse)
+pacman::p_load(ggplot2)
+pacman::p_load(forcats)
+
+```
+
+##### Importing the data
+
+```{r}
+exam_data <- read_csv("data/Exam_data.csv", 
+                      show_col_types = FALSE)
+```
+
+##### View Math Result using R hist
+
+```{r}
+hist(exam_data$MATHS,
+     main = "Histogram of Maths Exams Result",
+     xlab = "Score",
+     xlim = c(0, 100),
+     ylab = "Count",
+     ylim = c(0, 80),
+     col = "lightblue",
+     freq = TRUE)
+```
+
+##### View Math Result using ggplot
+
+```{r}
+ggplot(data = exam_data, aes(x = MATHS)) + 
+  
+  geom_histogram(bins = 10, 
+                 boundary = 100, 
+                 color = "black",
+                 fill = "lightblue") +
+  
+  labs(title = "Histogram of Exams Result", 
+       subtitle = "Maths",
+       x = "Score",
+       y = "Count") +
+  
+  theme_bw()
+```
+
+##### View Math Result using ggplot2 dotplot
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS)) +
+  geom_dotplot(binwidth = 2.5, dotsize = 0.5) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme_bw()
+  
+```
+
+##### View Math Result using ggplot2 histogram
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS)) +
+  geom_histogram(bins = 20,
+                 color = "black",
+                 fill = "lightblue") +
+  theme_bw()
+
+```
+
+##### View Math Result by Gender using ggplot2 histogram
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS, 
+           fill = GENDER)) +
+  geom_histogram(bins = 20,
+                 color = "grey30")+
+  theme_bw()
+
+```
+
+##### View Math Result using ggplot density
+```{r}
+
+ggplot(data = exam_data,
+       aes(x = MATHS, 
+           colour = GENDER)) +
+  geom_density() + 
+  theme_bw()
+
+```
+
+
+##### View Math Result using ggplot boxplot
+```{r}
+
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_boxplot() +
+  theme_bw()
+
+```
+
+
+##### View Math Result using ggplot notched boxplot
+```{r}
+
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_boxplot(notch = TRUE) + 
+  theme_bw()
+
+```
+
+
+##### View Math Result using ggplot boxplot and point
+```{r}
+
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_boxplot() +
+  geom_point(position = "jitter", size = 0.5) + 
+  theme_bw()
+
+```
+
+
+##### View Math Result using ggplot violin plot
+
+> 1. violin plot is a hybrid of a box plot and a kernel density plot shows peaks in the data. it can visualize the distribution of numerical data.
+> 
+> 2. violin plot depict summary statistics and the density of each variable.
+> (source: https://mode.com/blog/violin-plot-examples)
+
+```{r}
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_violin() + 
+  theme_bw()
+
+```
+
+
+##### View Math Result using ggplot violin plot and box plot
+
+```{r}
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_violin(fill = "lightblue") +
+  geom_boxplot(alpha = 0.5) + 
+  theme_bw()
+
+```
+
+
+
+##### View Math Result with statistic summary
+```{r}
+
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",
+               fun = "mean",
+               colour = "red",
+               size = 4) + 
+  theme_bw()
+
+```
+
+##### View Math Result with geom point
+```{r}
+
+ggplot(data = exam_data,
+       aes(y = MATHS, 
+           x = GENDER)) +
+  geom_boxplot() +
+  geom_point(stat = "summary",
+             fun = "mean",
+             colour = "red",
+             size = 4) + 
+  theme_bw()
+
+```
+
+
+
+##### View Exam Result between Maths and English using ggplot point
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS, 
+           y = ENGLISH)) +
+  geom_point() + 
+  theme_bw()
+
+```
+
+
+##### View Exam Result between Maths and English with fit curve on scatterplot
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS, 
+           y = ENGLISH)) +
+  geom_point() +
+  # default method used for smooth is loess
+  # geom_smooth(linewidth = 0.5)
+  geom_smooth(linewidth = 0.5, method = lm) +
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) + 
+  theme_bw()
+```
+
+
+##### View Exam Result by Classes using facet_wrap()
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS)) +
+  geom_histogram(bins = 20) +
+    facet_wrap(~ CLASS) + 
+  theme_bw()
+```
+##### View Exam Result by Classes using facet_grid()
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS)) +
+  geom_histogram(bins = 20) +
+    facet_grid(cols = vars(CLASS)) + 
+  theme_bw()
+```
+
+## Working with facet
+
+##### Working with facet: View Maths Exam Result by Gender and Class using facet_grid()
+
+```{r}
+ggplot(data = exam_data, aes(y = MATHS, x = CLASS)) +
+  geom_boxplot() + 
+    facet_grid(cols = vars(GENDER)) + 
+      theme_bw()
+```
+
+
+##### Working with facet: View Maths Exam Result by Gender and Class using facet_grid()
+
+```{r}
+ggplot(data = exam_data, aes(y = MATHS, x = CLASS)) +
+  geom_boxplot() + 
+    facet_grid(rows = vars(GENDER)) +
+      theme_bw()
+```
+
+
+
+##### Working with facet: View Maths Exam Result by Gender and Class using facet_grid()
+
+```{r}
+ggplot(data = exam_data, aes(y = MATHS, x = GENDER)) +
+  geom_boxplot() + 
+    facet_grid(rows = vars(GENDER), cols = vars(CLASS)) +
+      theme_bw()
+
+```
+
+##### View Race in Bar chart in vertical form
+```{r}
+ggplot(data = exam_data, aes(x = RACE)) +
+  geom_bar() +
+    theme_bw()
+
+```
+
+##### View Race in Bar chart in horizontal form
+```{r}
+ggplot(data = exam_data, aes(x = RACE)) +
+  geom_bar() +
+  coord_flip() + 
+  theme_bw()
+
+```
+
+## Working with theme
+
+##### Working with theme: View Race in Bar chart in horizontal form
+```{r}
+p <- ggplot(data = exam_data, 
+            aes(x = RACE)) +
+
+      geom_bar() + 
+  
+      coord_flip()
+
+p + theme(panel.background = 
+            element_rect(
+              fill = "lightblue", 
+              colour = NULL
+            )
+          )
+
+```
+
+## Designing Data-drive Graphics for Analysis
+
+##### Designing Data-drive Graphics for Analysis - View Race in Bar chart in vertical form
+```{r}
+pct_format = scales::percent_format(accuracy = .1)
+
+exam_data %>%
+  mutate(RACE = fct_infreq(RACE)) %>%
+  ggplot((aes(x = RACE))) +
+  geom_bar() +
+  
+  geom_text(aes(label = sprintf(
+                            '%d (%s)', 
+                            after_stat(count), 
+                            pct_format(
+                              after_stat(count) / sum(after_stat(count))
+                              )
+                            )
+                ),
+            stat="count",
+            nudge_y = 8 ) +
+  labs(title = "No. of Pupils by Race in Exam Results", 
+       y="No. of Pupils") 
+  
+
+```
+
+
+##### Designing Data-drive Graphics for Analysis - View Race in Bar chart in vertical form
+```{r}
+pct_format = scales::percent_format(accuracy = .1)
+
+exam_data %>%
+  mutate(RACE = fct_infreq(RACE)) %>%
+  ggplot((aes(x = RACE))) +
+  geom_bar(aes(fill = RACE), show.legend = TRUE) +
+  
+  geom_text(aes(label = sprintf(
+                          '%d (%s)', 
+                          after_stat(count), 
+                          pct_format(
+                            after_stat(count) / sum(after_stat(count))
+                          )
+                        )
+                ),
+            stat="count",
+            nudge_y = 8 ) +
+  labs(title = "No. of Pupils by Race in Exam Results", 
+       y="No. of Pupils") 
+  
+
+```
+
+
+##### Designing Data-drive Graphics for Analysis - Adding mean and median lines on the histogram plot
+
+```{r}
+ggplot(data = exam_data, aes(x = MATHS)) +
+
+  geom_histogram(bins = 20, color = "black", fill="lightblue") +
+  
+  geom_vline(xintercept = mean(exam_data$MATHS), 
+             linetype="dashed", 
+             linewidth=1, 
+             colour="red") + 
+  
+  geom_vline(xintercept = median(exam_data$MATHS), 
+             linetype="dashed", 
+             linewidth=1, 
+             colour="black") + 
+  
+  theme_bw()
+
+```
+
+
+##### Designing Data-drive Graphics for Analysis - Adding background to facet_grid()
+
+```{r}
+ggplot(data = exam_data, aes(x = ENGLISH)) +
+  geom_histogram(data = exam_data["ENGLISH"], 
+                 bins = 20, 
+                 fill="lightgrey", 
+                 alpha=0.5) +
+  geom_histogram(aes(fill=GENDER), 
+                 col="black", 
+                 bins = 20) +
+  facet_grid(cols = vars(GENDER)) + 
+  theme_bw()
+```
+
+##### Designing Data-drive Graphics for Analysis - fixed reference lines on scatterplot 
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS, y = ENGLISH)) +
+  
+  geom_point() + 
+  
+  geom_vline(xintercept = mean(50), 
+             linetype="dashed", 
+             linewidth=1, 
+             colour="grey") +
+  
+  geom_hline(yintercept = mean(50), 
+             linetype="dashed", 
+             linewidth=1, 
+             colour="grey") + 
+  
+  coord_cartesian(xlim = c(0, 100), 
+                  ylim = c(0, 100)) + 
+  theme_bw()
+
+```
+
+##### Designing Data-drive Graphics for Analysis - mean reference lines on scatterplot 
+
+```{r}
+ggplot(data = exam_data,
+       aes(x = MATHS, y = ENGLISH)) +
+  
+  geom_point() + 
+  
+  geom_vline(xintercept = mean(exam_data$MATHS), 
+             linetype="dashed", 
+             linewidth=1, 
+             colour="grey") +
+  
+  geom_hline(yintercept = mean(exam_data$ENGLISH), 
+             linetype="dashed", 
+             linewidth=1, 
+             colour="grey") +
+  
+  coord_cartesian(xlim = c(0, 100), 
+                  ylim = c(0, 100)) + 
+  
+  theme_bw()
+
+```
