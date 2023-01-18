@@ -35,18 +35,18 @@
     "text": "Designing Data-drive Graphics for Analysis\n\nDesigning Data-drive Graphics for Analysis - View Race in Bar chart in vertical form\n\npct_format = scales::percent_format(accuracy = .1)\n\nexam_data %>%\n  mutate(RACE = fct_infreq(RACE)) %>%\n  ggplot((aes(x = RACE))) +\n  geom_bar() +\n  \n  geom_text(aes(label = sprintf(\n                            '%d (%s)', \n                            after_stat(count), \n                            pct_format(\n                              after_stat(count) / sum(after_stat(count))\n                              )\n                            )\n                ),\n            stat=\"count\",\n            nudge_y = 8 ) +\n  labs(title = \"No. of Pupils by Race in Exam Results\", \n       y=\"No. of Pupils\") \n\n\n\n\n\n\nDesigning Data-drive Graphics for Analysis - View Race in Bar chart in vertical form\n\npct_format = scales::percent_format(accuracy = .1)\n\nexam_data %>%\n  mutate(RACE = fct_infreq(RACE)) %>%\n  ggplot((aes(x = RACE))) +\n  geom_bar(aes(fill = RACE), show.legend = TRUE) +\n  \n  geom_text(aes(label = sprintf(\n                          '%d (%s)', \n                          after_stat(count), \n                          pct_format(\n                            after_stat(count) / sum(after_stat(count))\n                          )\n                        )\n                ),\n            stat=\"count\",\n            nudge_y = 8 ) +\n  labs(title = \"No. of Pupils by Race in Exam Results\", \n       y=\"No. of Pupils\") \n\n\n\n\n\n\nDesigning Data-drive Graphics for Analysis - Adding mean and median lines on the histogram plot\n\nggplot(data = exam_data, aes(x = MATHS)) +\n\n  geom_histogram(bins = 20, color = \"black\", fill=\"lightblue\") +\n  \n  geom_vline(xintercept = mean(exam_data$MATHS), \n             linetype=\"dashed\", \n             linewidth=1, \n             colour=\"red\") + \n  \n  geom_vline(xintercept = median(exam_data$MATHS), \n             linetype=\"dashed\", \n             linewidth=1, \n             colour=\"black\") + \n  \n  theme_bw()\n\n\n\n\n\n\nDesigning Data-drive Graphics for Analysis - Adding background to facet_grid()\n\nggplot(data = exam_data, aes(x = ENGLISH)) +\n  geom_histogram(data = exam_data[\"ENGLISH\"], \n                 bins = 20, \n                 fill=\"lightgrey\", \n                 alpha=0.5) +\n  geom_histogram(aes(fill=GENDER), \n                 col=\"black\", \n                 bins = 20) +\n  facet_grid(cols = vars(GENDER)) + \n  theme_bw()\n\n\n\n\n\n\nDesigning Data-drive Graphics for Analysis - fixed reference lines on scatterplot\n\nggplot(data = exam_data,\n       aes(x = MATHS, y = ENGLISH)) +\n  \n  geom_point() + \n  \n  geom_vline(xintercept = mean(50), \n             linetype=\"dashed\", \n             linewidth=1, \n             colour=\"grey\") +\n  \n  geom_hline(yintercept = mean(50), \n             linetype=\"dashed\", \n             linewidth=1, \n             colour=\"grey\") + \n  \n  coord_cartesian(xlim = c(0, 100), \n                  ylim = c(0, 100)) + \n  theme_bw()\n\n\n\n\n\n\nDesigning Data-drive Graphics for Analysis - mean reference lines on scatterplot\n\nggplot(data = exam_data,\n       aes(x = MATHS, y = ENGLISH)) +\n  \n  geom_point() + \n  \n  geom_vline(xintercept = mean(exam_data$MATHS), \n             linetype=\"dashed\", \n             linewidth=1, \n             colour=\"grey\") +\n  \n  geom_hline(yintercept = mean(exam_data$ENGLISH), \n             linetype=\"dashed\", \n             linewidth=1, \n             colour=\"grey\") +\n  \n  coord_cartesian(xlim = c(0, 100), \n                  ylim = c(0, 100)) + \n  \n  theme_bw()"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "ISSS608-VAA",
-    "section": "",
-    "text": "Welcome to ISSS608 Visual Analytics and Applications"
-  },
-  {
     "objectID": "Inclass_Ex/Inclass_Ex01/Inclass_Ex01.html",
     "href": "Inclass_Ex/Inclass_Ex01/Inclass_Ex01.html",
     "title": "Inclass_Ex01",
     "section": "",
     "text": "https://public.tableau.com/app/profile/jerry.hou/viz/In-class_Ex01_16736796163560/Dashboard1"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "ISSS608-VAA",
+    "section": "",
+    "text": "Welcome to ISSS608 Visual Analytics and Applications"
   },
   {
     "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html",
@@ -56,13 +56,6 @@
     "text": "The target of this exercise is to reveal the demographic structure of Singapore population at planning area level by using age-sex pyramid method.\nIn this exercise, a single view by using trellis display for nine selected planning areas."
   },
   {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#objective",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#objective",
-    "title": "Take Home Exercise 1",
-    "section": "Objective",
-    "text": "Objective\nThe target of this exercise is to reveal the demographic structure of Singapore population at planning area level by using age-sex pyramid method.\nIn this exercise, a single view by using trellis display for nine selected planning areas."
-  },
-  {
     "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#data",
     "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#data",
     "title": "Exercise 1: Age-sex pyramid of Singapore Population",
@@ -70,46 +63,11 @@
     "text": "Data\nSingapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2022 from Department of Statistics, Singapore going to be used."
   },
   {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#tool",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#tool",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Tool",
-    "text": "Tool\nTableau desktop should be used to design the analytical visualisation."
-  },
-  {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#steps",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#steps",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Steps",
-    "text": "Steps"
-  },
-  {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#flow",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#flow",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Flow",
-    "text": "Flow"
-  },
-  {
     "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#designe-tool",
     "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#designe-tool",
     "title": "Exercise 1: Age-sex pyramid of Singapore Population",
     "section": "Designe Tool",
     "text": "Designe Tool\nTableau desktop should be used to design the analytical visualization."
-  },
-  {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#procedure",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#procedure",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Procedure",
-    "text": "Procedure"
-  },
-  {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#step-by-step-preparation",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#step-by-step-preparation",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Step-by-step Preparation",
-    "text": "Step-by-step Preparation\n\n\n\nNo.\nStep\nAction"
   },
   {
     "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#step-by-step",
@@ -121,20 +79,6 @@
   {
     "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#write-up",
     "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#write-up",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Write-up",
-    "text": "Write-up\n\nThe two age-sex pyramid charts reveal different levels of detail in different situations; the first chart with percentages can hide the actual size but reveal the proportion among different data categories. In contrast, the second chart can provide both the size and proportion of each category (e.g., Age Group (AG)) from a different group of data (e.g., Planning Area (PA)).\nBased on the Age-sex pyramid chart, provides better visualization for the population of different age groups in each planning area; the bar length represents the size of the age group.\n\n\n\n\n\n\n\nThe overall chart of Males or Females represents the distribution of different age groups within the planning area.\n\n\n\n\n\n\n\nFrom the Age Group of Males of Ang Mo Kio trends, it can be figured out that the birth rate in recent five years is lower than in the previous five years.\nCompare the Age Group between Males and Females in Ang Mo Kio on the Age-sex pyramid chart; it depicts the birth rate of Males more than females within Ang Mo Kio.\nThe chart of Punggol below depicts that most people in the Punggol area are aged between 30 and 55.\n\n\n\n\n\n\n\nComparing the chart between Punggol and Bedok, it is easily found that Bedok has more elderly citizens than the Punggol area.\n\n\n\n\n\n\n\nBy comparing the chart horizontally among different planning areas, the chart can reveal lots of information from the chart itself without a single word.\n\n\n\n\n\n\n\nThe proportion of the birth rate of Sengkang, Tampines, and Woodlands is much large than Toa Payoh, Clementi, and Ang Mo Kio by comparing the bar length based on age group 0_to_4.\nOverall population size of different planning areas can be revealed by the size of the combined area of both Blue and Pink of each planning area from the Chart, e.g., The overall population size of Seng Kang, Bedok, Tampines, and Woodlands are much larger than Toa Payoh, Clementi, and Sembawang.\n\n\nBy supplying different information to the Age-sex pyramid chart, it will provide a different level of detail; the Age-sex pyramid below are coloured with Type of Dwelling (TOD) or Subzone respectively.\n\n\n\n\n\n\n\nChart coloured with Type of Dwelling (TOD) reveals information such as Planning Areas like Ang Mo Kio, Bedok, Tampines, and Toa Payoh having more 3-room flats than Punggol, Sembawang, Seng Kang, and Woodlands.\nIt also reveals that most people in Singapore stay in 4 or 5-Room flats than 3-Room flats in Punggol and Sembawang, Seng Kang, Tampines, and Woodlands.\nChart coloured with Sub Zone reveals information such as the no. of popular zone areas in each Planning Area, e.g., four main areas in Tampines - Simei, Tampines East, Tampines West, and Tampines North.\n\n\nAge-sex pyramid chart can reveal plenty of information to the target audience for decision-making; it also can reveal information based on the different requirements to hide unnecessary information from the chart."
-  },
-  {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#publish",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#publish",
-    "title": "Exercise 1: Age-sex pyramid of Singapore Population",
-    "section": "Publish",
-    "text": "Publish"
-  },
-  {
-    "objectID": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#write-up-1",
-    "href": "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html#write-up-1",
     "title": "Exercise 1: Age-sex pyramid of Singapore Population",
     "section": "Write-up",
     "text": "Write-up\n\nThe two age-sex pyramid charts reveal different levels of detail in different situations; the first chart with percentages can hide the actual size but reveal the proportion among different data categories. In contrast, the second chart can provide both the size and proportion of each category (e.g., Age Group (AG)) from a different group of data (e.g., Planning Area (PA)).\nBased on the Age-sex pyramid chart, provides better visualization for the population of different age groups in each planning area; the bar length represents the size of the age group.\n\n\n\n\n\n\n\nThe overall chart of Males or Females represents the distribution of different age groups within the planning area.\n\n\n\n\n\n\n\nFrom the Age Group of Males of Ang Mo Kio trends, it can be figured out that the birth rate in recent five years is lower than in the previous five years.\nCompare the Age Group between Males and Females in Ang Mo Kio on the Age-sex pyramid chart; it depicts the birth rate of Males more than females within Ang Mo Kio.\nThe chart of Punggol below depicts that most people in the Punggol area are aged between 30 and 55.\n\n\n\n\n\n\n\nComparing the chart between Punggol and Bedok, it is easily found that Bedok has more elderly citizens than the Punggol area.\n\n\n\n\n\n\n\nBy comparing the chart horizontally among different planning areas, the chart can reveal lots of information from the chart itself without a single word.\n\n\n\n\n\n\n\nThe proportion of the birth rate of Sengkang, Tampines, and Woodlands is much large than Toa Payoh, Clementi, and Ang Mo Kio by comparing the bar length based on age group 0_to_4.\nOverall population size of different planning areas can be revealed by the size of the combined area of both Blue and Pink of each planning area from the Chart, e.g., The overall population size of Seng Kang, Bedok, Tampines, and Woodlands are much larger than Toa Payoh, Clementi, and Sembawang.\n\n\nBy supplying different information to the Age-sex pyramid chart, it will provide a different level of detail; the Age-sex pyramid below are coloured with Type of Dwelling (TOD) or Subzone respectively.\n\n\n\n\n\n\n\nChart coloured with Type of Dwelling (TOD) reveals information such as Planning Areas like Ang Mo Kio, Bedok, Tampines, and Toa Payoh having more 3-room flats than Punggol, Sembawang, Seng Kang, and Woodlands.\nIt also reveals that most people in Singapore stay in 4 or 5-Room flats than 3-Room flats in Punggol and Sembawang, Seng Kang, Tampines, and Woodlands.\nChart coloured with Sub Zone reveals information such as the no. of popular zone areas in each Planning Area, e.g., four main areas in Tampines - Simei, Tampines East, Tampines West, and Tampines North.\n\n\nAge-sex pyramid chart can reveal plenty of information to the target audience for decision-making; it also can reveal information based on the different requirements to hide unnecessary information from the chart."
