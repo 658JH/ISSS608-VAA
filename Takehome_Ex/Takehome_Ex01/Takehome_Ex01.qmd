@@ -22,8 +22,8 @@ Tableau desktop should be used to design the analytical visualization.
 
 ### Age-sex pyramid Visualization
 
-| No.| Step| Action|
-|-|-----------|-------------------------------|
+| No.|Step|Action|
+|-|----|--------|
 | 1   | Luanch Tableau, and Click on menu "File \> Open" to open data file downloaded.                                                                                                                                                                                                                                                      | ![1](./step/S01.png){width="800"}  |
 | 2   | Add a new worksheet, to create two calculated fields "Male" with formula `IF [Sex] == "Males" THEN [Pop] END`.                                                                                                                                                                                                                      | ![2](./step/S02.png){width="800"}  |
 | 3   | To create two calculated fields "Female" with formula `IF [Sex] == "Females" THEN [Pop] END`.                                                                                                                                                                                                                                       | ![3](./step/S03.png){width="800"}  |
@@ -42,9 +42,9 @@ Tableau desktop should be used to design the analytical visualization.
 ### Dashboard
 
 
-| No.| Step| Action|
-|-|-----------|-------------------------------|
-| 1  | Add a new dashboard, change the size of the page to *Automatic*, and drag the *SG (2022) Age-sex pyramid by Planning Area and Population Proportion* to the central of the dashboard, and drag the *SG (2022) Age-sex pyramid by Planning Area and Population Size* to the bottom of the dashboard. Extract the data and save the tableau data extract file, then Save the dashboard to [Tableau Public](https://public.tableau.com/app/profile/jerry.hou/viz/Takehome_Ex01/SG2022PopulationbyAgeGroup_1?publish=yes){.external target="_blank"}. | ![1](./step/S13.png){width="800"} |
+| No.|Step|Action|
+|-|----|--------|
+| 1   | Add a new dashboard, change the size of the page to *Automatic*, and drag the *SG (2022) Age-sex pyramid by Planning Area and Population Proportion* to the central of the dashboard, and drag the *SG (2022) Age-sex pyramid by Planning Area and Population Size* to the bottom of the dashboard. Extract the data and save the tableau data extract file, then Save the dashboard to [Tableau Public](https://public.tableau.com/app/profile/jerry.hou/viz/Takehome_Ex01/SG2022PopulationbyAgeGroup_1?publish=yes){.external target="_blank"}. | ![1](./step/S13.png){width="800"} |
 
 ### [Published Dashboard](https://public.tableau.com/app/profile/jerry.hou/viz/Takehome_Ex01/SG2022PopulationbyAgeGroup_1?publish=yes){.external target="_blank"}
 
