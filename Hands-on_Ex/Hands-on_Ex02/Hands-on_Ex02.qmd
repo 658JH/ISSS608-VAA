@@ -3,20 +3,24 @@ title: "Hands-on Exercise 2"
 author: "Hou Tao"
 ---
 
-## Beyond ggplot2 
+# Creating elegent graphics with ggplot2
+
+## Beyond ggplot2
 
 installing and loading the required libraries
+
 ```{r}
 pacman::p_load(tidyverse, patchwork, ggthemes, hrbrthemes, ggrepel, states, extrafont)
 ```
 
-
 import data
+
 ```{r}
 exam_data <- read_csv("data/Exam_data.csv", show_col_types = FALSE)
 ```
 
 beyond ggplot2 annotation
+
 ```{r}
 ggplot(data = exam_data, aes(x = MATHS, y = ENGLISH)) +
   geom_point() + 
@@ -27,10 +31,7 @@ ggplot(data = exam_data, aes(x = MATHS, y = ENGLISH)) +
   ggtitle("English scores versus Maths scores for Primary 3")
 ```
 
-
-ggplot2 annotation with *repel*, *ggrepel* provides *geoms* for ggplot2 to repel overlapping text labels, Text labels repel away from each other, away from data points, and away from edges of the plotting area (panel).
-- geom_text_repel()
-- geom_label_repel()
+ggplot2 annotation with *repel*, *ggrepel* provides *geoms* for ggplot2 to repel overlapping text labels, Text labels repel away from each other, away from data points, and away from edges of the plotting area (panel). - geom_text_repel() - geom_label_repel()
 
 ```{r}
 ggplot(data = exam_data, aes(x = MATHS, y = ENGLISH)) +
@@ -42,7 +43,6 @@ ggplot(data = exam_data, aes(x = MATHS, y = ENGLISH)) +
   ggtitle("English scores versus Maths scores for Primary 3")
 ```
 
-
 Beyond ggplot2 themes
 
 ```{r}
@@ -52,9 +52,7 @@ ggplot(data = exam_data, aes(x = MATHS)) +
   ggtitle("Distribution of Maths scores")
 ```
 
-
 Working with hrbrthemes package
-
 
 hrbrthemes package provides a base theme that focus on typograhic elements.
 
@@ -71,6 +69,7 @@ ggplot(data = exam_data, aes(x = MATHS)) +
 ```
 
 Byond ggplot2 facet
+
 ```{r}
 
 p1 <- ggplot(data = exam_data, aes(x = MATHS)) +
@@ -92,25 +91,19 @@ p3 <- ggplot(data = exam_data, aes(x = MATHS, y = ENGLISH)) +
                 ggtitle("English scores versus Maths scores for Primary 3")
 
 ```
-            
 
 ```{r}
 p1 + p2 / p3
 ```
 
-
 ```{r}
 (p1 / p2) | p3
 ```
-
 
 ```{r}
 ((p1 / p2) | p3) +
   plot_annotation(tag_levels = 'I')
 ```
-
-
-
 
 ```{r}
 patchwork <- ((p1 / p2) | p3) + plot_annotation(tag_levels = 'I')
@@ -119,9 +112,7 @@ patchwork & theme_economist()
 ```
 
 With inset_element() of patchwork, we can place one or several plots or graphic elements freely on top or below another plot.
+
 ```{r}
 p3 + inset_element(p2, left = 0.02, bottom = 0.7, right = 0.5, top = 1)
 ```
-
-
-

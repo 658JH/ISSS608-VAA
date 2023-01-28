@@ -11,9 +11,7 @@ The code chunk below use p_load of pacman package to check if tidyverse packages
 
 ```{r}
 
-pacman::p_load(tidyverse)
-pacman::p_load(ggplot2)
-pacman::p_load(forcats)
+pacman::p_load(tidyverse, ggplot2, forcats)
 
 ```
 
@@ -91,6 +89,7 @@ ggplot(data = exam_data,
 ```
 
 ##### View Math Result using ggplot density
+
 ```{r}
 
 ggplot(data = exam_data,
@@ -101,8 +100,8 @@ ggplot(data = exam_data,
 
 ```
 
-
 ##### View Math Result using ggplot boxplot
+
 ```{r}
 
 ggplot(data = exam_data,
@@ -113,8 +112,8 @@ ggplot(data = exam_data,
 
 ```
 
-
 ##### View Math Result using ggplot notched boxplot
+
 ```{r}
 
 ggplot(data = exam_data,
@@ -125,8 +124,8 @@ ggplot(data = exam_data,
 
 ```
 
-
 ##### View Math Result using ggplot boxplot and point
+
 ```{r}
 
 ggplot(data = exam_data,
@@ -138,13 +137,11 @@ ggplot(data = exam_data,
 
 ```
 
-
 ##### View Math Result using ggplot violin plot
 
-> 1. violin plot is a hybrid of a box plot and a kernel density plot shows peaks in the data. it can visualize the distribution of numerical data.
-> 
-> 2. violin plot depict summary statistics and the density of each variable.
-> (source: https://mode.com/blog/violin-plot-examples)
+> 1.  violin plot is a hybrid of a box plot and a kernel density plot shows peaks in the data. it can visualize the distribution of numerical data.
+>
+> 2.  violin plot depict summary statistics and the density of each variable. (source: https://mode.com/blog/violin-plot-examples)
 
 ```{r}
 ggplot(data = exam_data,
@@ -154,7 +151,6 @@ ggplot(data = exam_data,
   theme_bw()
 
 ```
-
 
 ##### View Math Result using ggplot violin plot and box plot
 
@@ -168,9 +164,8 @@ ggplot(data = exam_data,
 
 ```
 
-
-
 ##### View Math Result with statistic summary
+
 ```{r}
 
 ggplot(data = exam_data,
@@ -186,6 +181,7 @@ ggplot(data = exam_data,
 ```
 
 ##### View Math Result with geom point
+
 ```{r}
 
 ggplot(data = exam_data,
@@ -200,8 +196,6 @@ ggplot(data = exam_data,
 
 ```
 
-
-
 ##### View Exam Result between Maths and English using ggplot point
 
 ```{r}
@@ -212,7 +206,6 @@ ggplot(data = exam_data,
   theme_bw()
 
 ```
-
 
 ##### View Exam Result between Maths and English with fit curve on scatterplot
 
@@ -228,7 +221,6 @@ ggplot(data = exam_data,
   theme_bw()
 ```
 
-
 ##### View Exam Result by Classes using facet_wrap()
 
 ```{r}
@@ -238,6 +230,7 @@ ggplot(data = exam_data,
     facet_wrap(~ CLASS) + 
   theme_bw()
 ```
+
 ##### View Exam Result by Classes using facet_grid()
 
 ```{r}
@@ -259,7 +252,6 @@ ggplot(data = exam_data, aes(y = MATHS, x = CLASS)) +
       theme_bw()
 ```
 
-
 ##### Working with facet: View Maths Exam Result by Gender and Class using facet_grid()
 
 ```{r}
@@ -268,8 +260,6 @@ ggplot(data = exam_data, aes(y = MATHS, x = CLASS)) +
     facet_grid(rows = vars(GENDER)) +
       theme_bw()
 ```
-
-
 
 ##### Working with facet: View Maths Exam Result by Gender and Class using facet_grid()
 
@@ -282,6 +272,7 @@ ggplot(data = exam_data, aes(y = MATHS, x = GENDER)) +
 ```
 
 ##### View Race in Bar chart in vertical form
+
 ```{r}
 ggplot(data = exam_data, aes(x = RACE)) +
   geom_bar() +
@@ -290,6 +281,7 @@ ggplot(data = exam_data, aes(x = RACE)) +
 ```
 
 ##### View Race in Bar chart in horizontal form
+
 ```{r}
 ggplot(data = exam_data, aes(x = RACE)) +
   geom_bar() +
@@ -301,6 +293,7 @@ ggplot(data = exam_data, aes(x = RACE)) +
 ## Working with theme
 
 ##### Working with theme: View Race in Bar chart in horizontal form
+
 ```{r}
 p <- ggplot(data = exam_data, 
             aes(x = RACE)) +
@@ -321,6 +314,7 @@ p + theme(panel.background =
 ## Designing Data-drive Graphics for Analysis
 
 ##### Designing Data-drive Graphics for Analysis - View Race in Bar chart in vertical form
+
 ```{r}
 pct_format = scales::percent_format(accuracy = .1)
 
@@ -345,8 +339,8 @@ exam_data %>%
 
 ```
 
-
 ##### Designing Data-drive Graphics for Analysis - View Race in Bar chart in vertical form
+
 ```{r}
 pct_format = scales::percent_format(accuracy = .1)
 
@@ -371,7 +365,6 @@ exam_data %>%
 
 ```
 
-
 ##### Designing Data-drive Graphics for Analysis - Adding mean and median lines on the histogram plot
 
 ```{r}
@@ -393,7 +386,6 @@ ggplot(data = exam_data, aes(x = MATHS)) +
 
 ```
 
-
 ##### Designing Data-drive Graphics for Analysis - Adding background to facet_grid()
 
 ```{r}
@@ -409,7 +401,7 @@ ggplot(data = exam_data, aes(x = ENGLISH)) +
   theme_bw()
 ```
 
-##### Designing Data-drive Graphics for Analysis - fixed reference lines on scatterplot 
+##### Designing Data-drive Graphics for Analysis - fixed reference lines on scatterplot
 
 ```{r}
 ggplot(data = exam_data,
@@ -433,7 +425,7 @@ ggplot(data = exam_data,
 
 ```
 
-##### Designing Data-drive Graphics for Analysis - mean reference lines on scatterplot 
+##### Designing Data-drive Graphics for Analysis - mean reference lines on scatterplot
 
 ```{r}
 ggplot(data = exam_data,

@@ -1,0 +1,93 @@
+---
+title: "Inclass_Ex03"
+author: "Hou Tao"
+date: "28 Jan 2023"
+date-modified: "`r Sys.Date()`"
+execute: 
+  echo: true
+  eval: true
+  warning: false
+format: html
+editor: visual
+---
+
+### Getting Started
+
+Installing and loading R packages
+
+Two packages will be installd and loaded, they are: tidyverse, ggiraph.
+
+Always to load tidyverse last, to avoid any potential conflicts with tidyverse.
+
+```{r}
+
+pacman::p_load(ggiraph, tidyverse)
+
+```
+
+Importing data
+
+```{r}
+
+exam_data <- read_csv('data/Exam_data.csv', show_col_types = FALSE)
+
+
+```
+
+
+
+```{r}
+
+ggplot(data = exam_data,
+       aes(x = MATHS)) +
+       geom_dotplot(dotsize = 0.5)
+
+
+```
+
+```{r}
+
+p <- ggplot(data = exam_data,
+       aes(x = MATHS)) +
+       geom_dotplot_interactive(
+         aes(tooltip = ID),
+         stackgroups = TRUE,
+         binwidth = 1,
+         method = "histodot") +
+      scale_y_continuous(NULL, breaks = NULL)
+       
+girafe(
+  ggobj = p,
+  width_svg = 6,
+  height_svg = 6 * 0.6
+)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Tableau Publish
+
+Tableau Tooltip and Animation: https://public.tableau.com/app/profile/jerry.hou/viz/In-class_Ex03_16748828812280/Dashboard1
+
+Tableau Slicing: https://public.tableau.com/app/profile/jerry.hou/viz/Inclass_Ex03_02/Dashboard1
