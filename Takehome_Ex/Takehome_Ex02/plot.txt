@@ -1,0 +1,36 @@
+
+```{r, fig.height = 13, fig.width = 18}
+
+pop_summary %>%
+  
+  # transform the data so that male show on the left size 
+  mutate(
+    Pop_Size  = ifelse(Sex == "Males", Pop_Size * (-1), Pop_Size * 1),
+    Pop_Prop  = ifelse(Sex == "Males", Pop_Prop * (-1), Pop_Prop * 1),
+    Pop_Label = paste0(scales::comma(abs(round(Pop_Size))))
+  ) %>%
+  
+  # plot 
+  ggplot(aes(x = Pop_Size, y = AG, label = Pop_Label)) + 
+  
+  # fill the value for the plot
+  geom_col(aes(fill = Sex), inherit.aes = TRUE) +
+  
+  scale_fill_manual("", values = c("#EF756A", "#3FBFC5")) + 
+  
+  scale_x_continuous("", 
+                     breaks = scales::pretty_breaks(n=15),
+                     labels = function(br) ifelse(abs(br) >= 1000, paste0(abs(br)/1000, "k"), abs(br)))+
+  
+  labs(x = "", y = "Age Groups") + 
+  
+
+facet_wrap(~ PA, ncol = 3, scales = "free_x") +
+  
+  theme_bw() + 
+  
+  theme()
+
+
+
+```
