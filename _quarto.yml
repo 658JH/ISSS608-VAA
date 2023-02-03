@@ -7,12 +7,19 @@ website:
     left:
     - text: "Hands-on Exercise"
       menu:
-        - text: "Hands-on Exercise 1"
+        - text: "Hands-on Exercise 1 - DataVis with ggplot2"
           href: "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html"
-        - text: "Hands-on Exercise 2"
+        - text: "Hands-on Exercise 2 - Beyond ggplot2 Fundamentals"
           href: "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html"
-        - text: "Hands-on Exercise 3"
+        - text: "Hands-on Exercise 3 - Interactive Data Visualisation"
           href: "Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html"
+        - text: "Hands-on Exercise 4 - Visual Statistical Analysis"
+          href: "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04_1.html"
+        - text: "Hands-on Exercise 4 - Visualising Uncertainty"
+          href: "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04_2.html"
+        - text: "Hands-on Exercise 4 - Building Funnel Plot with R"
+          href: "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04_3.html"
+          
     - text: "In-class Exercise"
       menu:
         - text: "In-class Exercise 1"
