@@ -11,6 +11,213 @@ format: html
 editor: visual
 ---
 
-
 ## 1. Visual Statistical Analysis
 
+### 1.1 Load Packages and Import Data
+
+```{r}
+pacman::p_load(ggstatsplot, tidyverse)
+```
+
+```{r}
+exam <- read_csv("data/Exam_data.csv", show_col_types = FALSE)
+```
+
+### 1.2 One-sample test: gghistostats() method
+
+one sample test on English scores by using gghistostats
+
+```{r}
+set.seed(1234)
+
+gghistostats(
+  data = exam,
+  x = ENGLISH,
+  type = "bayes",
+  normal.curve = TRUE,
+  test.value = 60,
+  xlab = "English scores",
+  bf.message= TRUE
+)
+```
+
+##### Unpacking the Bayes Factor
+
+A Bayes factor is the ratio of the likelihood of one particular hypothesis to the likelihood of another. It can be interpreted as a measure of the strength of evidence in favor of one theory among two competing theories.
+
+That's because the Bayes factor gives us a way to evaluate the data in favor of a null hypothesis, and to use external information to do so. It tells us what the weight of the evidence is in favor of a given hypothesis.
+
+When we are comparing two hypotheses, H1 (the alternate hypothesis) and H0 (the null hypothesis), the Bayes Factor is often written as B10. It can be defined mathematically as ![5](./refs/image5.jpg) The Schwarz criterion is one of the easiest ways to calculate rough approximation of the Bayes Factor. https://www.statisticshowto.com/bayesian-information-criterion/
+
+##### How to interpret Bayes Factor:
+
+A Bayes Factor can be any positive number. One of the most common interpretations is this one---first proposed by Harold Jeffereys (1961) and slightly modified by Lee and Wagenmakers in 2013 https://www-tandfonline-com.libproxy.smu.edu.sg/doi/pdf/10.1080/00031305.1999.10474443?needAccess=true ![6](./refs/image6.jpg)
+
+### 1.2 Two-sample mean test: ggbetweenstats()
+
+ggbetweenstats() for two-sample mean test of Maths scores by gender.
+
+```{r}
+
+ggbetweenstats(
+  data = exam,
+  x = GENDER,
+  y = MATHS,
+  type = "nonparametric",
+  messages = FALSE
+)
+
+
+```
+
+Default information: - statistical details - Bayes Factor - sample sizes - distribution summary
+
+### 1.3 Oneway ANOVA Test: ggbetweenstats() method
+
+ggbetweenstats() is used to build a visual for One-way ANOVA test on English score by race.
+
+```{r}
+
+ggbetweenstats(
+  data = exam,
+  x = RACE,
+  y = ENGLISH,
+  type = "p",
+  mean.ci = TRUE,
+  pairwise.comparisons = TRUE,
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = FALSE
+)
+
+
+```
+
+p value \<0.05 means, two groups student mean are different, student average score are different,
+
+http://www.360doc.com/content/22/1003/19/69789439_1050364021.shtml
+
+pairwise.display - "significant" (abbreviation accepted: "s") - "non-significant" (abbreviation accepted: "ns") - "all"
+
+ggbetweenstats - Summary of tests ![7](./refs/image7.jpg) ![8](./refs/image8.jpg) ![9](./refs/image9.jpg)
+
+### 1.4 Significant Test of Correlation: ggscatterstats()
+
+ggscatterstats() is used to build a visual for Significant Test of Correlation between Maths scores and English scores.
+
+```{r}
+ggscatterstats(
+  data = exam,
+  x = MATHS,
+  y = ENGLISH,
+  marginal = FALSE
+)
+```
+
+### 1.5 Significant Test of Association (Depedence) : ggbarstats() methods
+
+the Maths scores is binned into a 4-class variable by using cut().
+
+```{r}
+
+exam1 <- exam %>%
+          mutate(MATHS_bins = cut(MATHS, breaks = c(0, 60, 75, 85, 100)))
+
+```
+
+ggbarstats() is used to build a visual for Significant Test of Association
+
+```{r}
+
+ggbarstats(exam1, x = MATHS_bins, y = GENDER)
+
+```
+
+## 2. Visualising Models
+
+### 2.1 Install libaraies
+
+```{r}
+pacman::p_load(readxl, performance, parameters, see)
+```
+
+### 2.2 Import Data
+
+```{r}
+car_resale <- read_xls("data/ToyotaCorolla.xls", "data")
+```
+
+```{r}
+car_resale
+```
+
+### 2.3 Multiple Regression Model using lm()
+
+```{r}
+model <- lm(Price ~ Age_08_04 + Mfg_Year + KM + Weight + Guarantee_Period, data = car_resale)
+
+```
+
+```{r}
+model
+```
+
+### 2.4 Model Diagnostic: checking for multicolinearity:
+
+check_collinearity() of performance package.
+
+```{r}
+check_collinearity(model)
+```
+
+```{r}
+check_c <- check_collinearity(model)
+plot(check_c)
+```
+
+### 2.5 Model Diagnostic: checking normality assumption
+
+```{r}
+model_1 <- lm(Price ~ Age_08_04 + KM + Weight + Guarantee_Period, data = car_resale)
+
+check_n_1 <- check_normality(model_1)
+
+plot(check_n_1)
+```
+
+### 2.6 Model Diagnostic: Check model for homogeneity of variances
+
+check_heteroscedasticity() of performance package.
+
+```{r}
+check_h_1 <- check_heteroscedasticity(model_1)
+plot(check_h_1)
+```
+
+### 2.7 Model Diagnostic: Complete check
+
+perform the complete check by using check_model().
+
+```{r, fig.width=10, fig.height=10, warning=FALSE}
+check_model(model_1)
+```
+
+### 2.8 Visualising Regression Parameters: see methods
+
+parameters() of parameters package is used to visualise the parameters of a regression model.
+
+```{r}
+plot(parameters(model_1))
+```
+
+What does it means?
+
+### 2.9 Visualising Regression Parameters: ggcoefstats() methods
+
+ggcoefstats() of ggstatsplot package to visualise the parameters of a regression model.
+
+```{r}
+ggcoefstats(model_1, output = "plot")
+```
+
+Q: what does it means?
