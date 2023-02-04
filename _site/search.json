@@ -186,6 +186,6 @@
     "href": "Inclass_Ex/Inclass_Ex04/Inclass_Ex04.html",
     "title": "Inclass_Ex04",
     "section": "",
-    "text": "1. Load libraries\n\npacman::p_load(plotly, DT, patchwork, tidyverse, readxl, gifski, gapminder)\n\n\n\n2. Import Data\n\nexam_data <- read_csv(\"data/Exam_data.csv\", show_col_types = FALSE)\n\n\nplot_ly(data = exam_data,\n        x = ~ENGLISH,\n        y = ~MATHS,\n        color = ~RACE,\n        type = \"scatter\",\n        mode = \"markers\")"
+    "text": "1. Load libraries\n\npacman::p_load(plotly, DT, patchwork, tidyverse, readxl, gifski, gapminder)\n\n\n\n2. Import Data\n\nexam_data <- read_csv(\"data/Exam_data.csv\", show_col_types = FALSE)\n\n\nplot_ly(data = exam_data,\n        x = ~ENGLISH,\n        y = ~MATHS,\n        color = ~RACE,\n        colors = \"Set3\",\n        type = \"scatter\",\n        mode = \"markers\"\n        )\n\n\n\n\n\n\np <- ggplot(data=exam_data, \n            aes(x = MATHS,\n                y = ENGLISH)) +\n  geom_point(aes(color = RACE), size = 1) +\n  coord_cartesian(xlim = c(-100, 100),\n                  ylim = c(-100, 100))\nggplotly(p)"
   }
 ]

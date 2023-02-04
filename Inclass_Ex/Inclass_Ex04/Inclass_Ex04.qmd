@@ -39,7 +39,6 @@ plot_ly(data = exam_data,
         )
 ```
 
-
 ```{r}
 p <- ggplot(data=exam_data, 
             aes(x = MATHS,
@@ -49,4 +48,3 @@ p <- ggplot(data=exam_data,
                   ylim = c(-100, 100))
 ggplotly(p)
 ```
-
