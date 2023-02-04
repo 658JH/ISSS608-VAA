@@ -16,7 +16,7 @@ editor: visual
 
 ```{r}
 
-pacman::p_load(plotly, DT, patchwork, tidyverse, readxl, gifski, gapminder)
+pacman::p_load(ggstatsplot, plotly, DT, patchwork, tidyverse, readxl, gifski, gapminder, gtsummary, ggdist)
 
 ```
 
@@ -48,3 +48,179 @@ p <- ggplot(data=exam_data,
                   ylim = c(-100, 100))
 ggplotly(p)
 ```
+
+#### 3.1 Two sample mean test - parametric test
+
+```{r}
+
+ggbetweenstats(
+  data = exam_data,
+  x = GENDER,
+  y = MATHS,
+  type = "p",
+  message = FALSE
+)
+
+# student-t test assume two samples are equal variance, that's why using wetch-test
+
+# p-value is large than 0.05 means that null hypo cannot be rejected, meaning two sample mean has no significant different at 95% CI.
+
+```
+
+#### 3.2 Two sample medium test - nonparametric
+
+```{r}
+ggbetweenstats(
+  data = exam_data,
+  x = GENDER,
+  y = MATHS,
+  type = "robust",
+  plot.type = "boxviolin",
+  message = FALSE,
+  outlier.tagging = TRUE,
+  outlier.label   = ID
+)
+
+# np is testing the medium, not the mean
+
+```
+
+```{r}
+ggscatterstats(
+  data = exam_data,
+  x = MATHS,
+  y = ENGLISH,
+  conf.level = 0.95,
+  marginal = TRUE,
+  bf.message = TRUE
+  )
+```
+
+## 4. Model Diagnostic Test
+
+```{r}
+pacman::p_load(readxl, performance, parameters, see)
+```
+
+```{r}
+car_resale <- read_xls("data/ToyotaCorolla.xls", "data")
+```
+
+```{r}
+
+## multi-linear regression model
+
+## estimate price (dependent variable) by use parameters (independent / explainable variables)
+
+## gtsummary::tbl_summary can be used to print the model in dataframe model
+
+model <- lm(Price ~ Age_08_04 + Mfg_Year + KM + Weight + Guarantee_Period, data = car_resale)
+
+model
+
+```
+
+#### 4.1.1 print the summary into table form
+
+```{r}
+
+tbl_regression(model)
+
+```
+
+#### 4.1.2 Check collinearity
+
+```{r}
+check_c <- check_collinearity(model)
+check_c
+```
+
+#### 4.1.3 visualize collinearity
+
+```{r, warning=FALSE}
+plot(check_c)
+```
+
+#### 4.1.4 check normality
+
+```{r}
+check_n <- check_normality(model)
+plot(check_n)
+```
+
+#### 4.1.5 check model
+
+```{r}
+check_model(model)
+```
+
+### 4.2 Model without correlated parameters
+
+```{r}
+
+#model_2 <- lm(Price ~ Age_08_04 + Mfg_Year + KM + Weight + Guarantee_Period, data = car_resale)
+
+model_2 <- lm(Price ~ Mfg_Year + KM + Weight + Guarantee_Period, data = car_resale)
+
+model_2
+
+```
+
+#### 4.2.1 visualize collinearity
+
+```{r, warning=FALSE}
+check_c_2 <- check_collinearity(model_2)
+plot(check_c_2)
+```
+
+#### 4.2.2 check normality
+
+```{r}
+check_n_2 <- check_normality(model_2)
+plot(check_n_2)
+```
+
+#### 4.2.3 check model
+
+```{r, fig.width=15}
+check_model(model)
+```
+
+
+## 5. Visualising Uncertainty
+```{r}
+my_sum <- exam_data %>%
+  group_by(RACE) %>%
+  summarise(
+    n=n(),
+    mean=mean(MATHS),
+    sd=sd(MATHS)
+    ) %>%
+  mutate(se=sd/sqrt(n-1))
+```
+
+#### 5.1 Visualising Uncertainty by using geom_errorbar
+
+```{r}
+p <- ggplot(my_sum) +
+  geom_errorbar(
+    aes(x=RACE, 
+        ymin=mean-se, 
+        ymax=mean+se), 
+    width=0.2, 
+    colour="black", 
+    alpha=0.9, 
+    linewidth=0.5) +
+  geom_point(aes
+           (x=RACE, 
+            y=mean), 
+           stat="identity", 
+           color="red",
+           size = 1.5,
+           alpha=1)
+
+ggplotly(p)
+```
+
+
+
