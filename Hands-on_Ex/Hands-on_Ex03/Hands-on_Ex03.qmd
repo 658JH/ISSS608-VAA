@@ -470,7 +470,6 @@ WorldCountry <- read_csv("data/WorldCountry.csv", show_col_types = FALSE)
 
 ```
 
-
 ```{r, warning=FALSE}
 
 GDP_selected <- GDP %>%
@@ -486,7 +485,6 @@ GDP_selected <- GDP %>%
 
 DT::datatable(GDP_selected)
 ```
-
 
 ### 5.2 Data Preparation
 
@@ -530,43 +528,3 @@ p <- plotly_packed_bar(
 plotly::config(p, displayModeBar = FALSE)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

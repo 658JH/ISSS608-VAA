@@ -6,7 +6,47 @@ date-modified: "`r Sys.Date()`"
 execute: 
   echo: true
   eval: true
+  error: false
   warning: false
-format: html
+  message: false
 editor: visual
 ---
+
+### 1. Load libraries
+
+```{r}
+
+pacman::p_load(plotly, DT, patchwork, tidyverse, readxl, gifski, gapminder)
+
+```
+
+### 2. Import Data
+
+```{r}
+
+exam_data <- read_csv("data/Exam_data.csv", show_col_types = FALSE)
+
+```
+
+```{r}
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        color = ~RACE,
+        colors = "Set3",
+        type = "scatter",
+        mode = "markers"
+        )
+```
+
+
+```{r}
+p <- ggplot(data=exam_data, 
+            aes(x = MATHS,
+                y = ENGLISH)) +
+  geom_point(aes(color = RACE), size = 1) +
+  coord_cartesian(xlim = c(-100, 100),
+                  ylim = c(-100, 100))
+ggplotly(p)
+```
+
