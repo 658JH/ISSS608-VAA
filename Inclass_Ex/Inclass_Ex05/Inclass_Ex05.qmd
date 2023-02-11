@@ -7,8 +7,161 @@ execute:
   echo: true
   eval: true
   warning: false
-format: html
+format: 
+  html:
+    page-layout: full
 editor: visual
 ---
 
+## Import Library
+
+```{r}
+pacman::p_load(GGally, parallelPlot, seriation, dendextend, heatmaply, ggtern, plotly, corrplot, ggstatsplot, tidyverse)
+```
+
+## Load Data
+
+```{r}
+wine <- read_csv("data/wine_quality.csv", show_col_types = FALSE)
+```
+
+## Correlation Matrix
+
+### pairs
+
+pairs won't support categorical data, such as 'type' in wine data
+
+```{r, fig.width=14, fig.height= 8, fig.align='center'}
+pairs(wine[, 1:11])
+```
+
+
+
+```{r, fig.width=14, fig.height=7, fig.align='center'}
+ggstatsplot::grouped_ggcorrmat(data = wine, cor.vars = 1:11,  grouping.var = type, type = 'robust', p.adjust.method = "holm", plotgrid.args = list(ncol = 2))
+```
+
+## corrplot
+
+```{r}
+wine.cor <- cor(wine[,1:11])
+```
+
+```{r, fig.width=14, fig.align='center'}
+corrplot(wine.cor, order = 'hclust', method = 'ellipse', tl.pos = "lt", tl.col = "black", addrect = 3, hclust.method = "ward.D")
+```
+
+```{r, fig.width=14, fig.align='center'}
+corrplot.mixed(wine.cor, lower = 'ellipse', upper = 'number', tl.pos = "lt", diag = 'l', tl.col = "black", addrect = 3, hclust.method = "ward.D")
+
+```
+
+# ggpairs
+
+```{r, fig.width=14, fig.align='center'}
+pop_data <- read_csv("data/respopagsex2000to2018_tidy.csv", show_col_types = FALSE) 
+
+```
+
+```{r}
+agpop_mutated <- pop_data %>%
+  mutate(`Year` = as.character(Year))%>%
+  spread(AG, Population) %>%
+  mutate(YOUNG = rowSums(.[4:8]))%>%
+  mutate(ACTIVE = rowSums(.[9:16]))  %>%
+  mutate(OLD = rowSums(.[17:21])) %>%
+  mutate(TOTAL = rowSums(.[22:24])) %>%
+  filter(Year == 2018)%>%
+  filter(TOTAL > 0)
+
+```
+
+```{r, fig.width=14, fig.align='center'}
+ggtern(data = agpop_mutated, aes(x = YOUNG, y = ACTIVE, z = OLD)) + 
+  geom_point() + 
+  labs(title = "Population structure, 2018") + 
+  theme_rgbw()
+```
+
+```{r, fig.width=14, fig.align='center', warning=FALSE}
+label <- function(txt) {
+  list(
+    text = txt, 
+    x = 0.1, y = 1,
+    ax = 0, ay = 0,
+    xref = "paper", yref = "paper", 
+    align = "center",
+    font = list(family = "serif", size = 15, color = "white"),
+    bgcolor = "#b3b3b3", bordercolor = "black", borderwidth = 2
+  )
+}
+
+axis <- function(txt) {
+  list(
+    title = txt, tickformat = ".0%", tickfont = list(size = 10)
+  )
+}
+
+ternaryAxes <- list(
+  aaxis = axis("Young"), 
+  baxis = axis("Active"), 
+  caxis = axis("Old")
+)
+
+
+plot_ly(
+  agpop_mutated, a = ~YOUNG, b = ~ACTIVE, c = ~OLD, color = I("black"), type = "scatterternary"
+) %>%
+  layout(
+      annotations = label("Ternary Markers"),
+      ternaryAxes = ternaryAxes
+  )
+```
+
+#heatmap
+
+```{r, warning=FALSE}
+wh <- read_csv("data/WHData-2018.csv", show_col_types = FALSE)
+
+```
+
+put country name into row name rather than row number
+
+```{r, warning=FALSE}
+row.names(wh) <- wh$Country
+```
+
+create a matrix form with columns 3, 7-12.
+
+```{r, warning=FALSE}
+wh1 <- dplyr::select(wh, c(3, 7:12))
+wh_matrix <- data.matrix(wh)
+```
+
+plot heatmap by excluding columns 1,2,4,5
+
+```{r, fig.width=20, fig.height=100, fig.align='center'}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]), plot_method = "plotly", 
+          colors = Blues,
+          k_row = 10,
+          margins = c(NA,200,60,NA),)
+```
+
+```{r, fig.width=20, fig.height=15, fig.align='center'}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax",
+           alphaLines = 0.2,
+           boxplot = TRUE)
+```
+
+
+```{r, fig.width=20, fig.height=15, fig.align='center'}
+
+histoVisibility <- rep(TRUE, ncol(wh))
+parallelPlot(wh,
+             rotateTitle = TRUE,
+             histoVisibility = histoVisibility)
+```
 
