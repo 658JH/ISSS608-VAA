@@ -1,0 +1,98 @@
+---
+title: "Handson_Ex05"
+author: "Hou Tao"
+date: "11 Feb 2023"
+date-modified: "`r Sys.Date()`"
+execute: 
+  echo: true
+  eval: true
+  warning: false
+format: html
+editor: visual
+---
+
+# Building Ternary Plot with R
+
+### Installing Package
+
+```{r}
+pacman::p_load(seriation, dendextend, heatmaply, tidyverse)
+```
+
+### Data Preparation
+
+```{r}
+wh <- read_csv("data/WHData-2018.csv", show_col_types = FALSE)
+```
+
+```{r, warning=FALSE}
+row.names(wh) <- wh$Country
+
+```
+
+```{r, warning=FALSE}
+wh1 <- dplyr::select(wh, c(3, 7:12))
+wh_matrix <- data.matrix(wh)
+```
+
+```{r}
+wh_heatmap <- heatmap(wh_matrix,
+                      Rowv=NA, Colv=NA)
+```
+
+```{r}
+wh_heatmap <- heatmap(wh_matrix)
+
+```
+
+```{r}
+wh_heatmap <- heatmap(wh_matrix,
+                      scale="column",
+                      cexRow = 0.6, 
+                      cexCol = 0.8,
+                      margins = c(10, 4))
+```
+
+```{r}
+heatmaply(mtcars)
+```
+
+```{r}
+heatmaply(wh_matrix[, -c(1, 2, 4, 5)])
+
+```
+
+```{r}
+heatmaply(wh_matrix[, -c(1, 2, 4, 5)],
+          scale = "column")
+```
+
+```{r}
+heatmaply(percentize(wh_matrix[, -c(1, 2, 4, 5)]))
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          dist_method = "euclidean",
+          hclust_method = "ward.D")
+```
+
+# Statistical approach
+
+```{r}
+wh_d <- dist(normalize(wh_matrix[, -c(1, 2, 4, 5)]), method = "euclidean")
+dend_expend(wh_d)[[3]]
+```
+
+```{r}
+wh_clust <- hclust(wh_d, method = "average")
+num_k <- find_k(wh_clust)
+plot(num_k)
+```
+
+```{r}
+heatmaply(normalize(wh_matrix[, -c(1, 2, 4, 5)]),
+          dist_method = "euclidean",
+          hclust_method = "average",
+          k_row = 3)
+```

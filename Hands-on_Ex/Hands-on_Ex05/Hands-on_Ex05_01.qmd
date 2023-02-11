@@ -1,0 +1,52 @@
+---
+title: "Handson_Ex05"
+author: "Hou Tao"
+date: "11 Feb 2023"
+date-modified: "`r Sys.Date()`"
+execute: 
+  echo: true
+  eval: true
+  warning: false
+format: html
+editor: visual
+---
+
+# Building Ternary Plot with R
+
+### Installing Package
+
+```{r}
+pacman::p_load(ggtern, plotly, tidyverse)
+```
+
+### Data Preparation
+
+```{r}
+pop_data <- read_csv("data/respopagsex2000to2018_tidy.csv", show_col_types = FALSE)
+```
+
+### Preparing Data
+
+```{r}
+agpop_mutated <- pop_data %>%
+  mutate(`Year` = as.character((Year))) %>%
+  spread(AG, Population) %>%
+  mutate(YOUNG = rowSums(.[4:8])) %>%
+  mutate(ACTIVE = rowSums(.[9:16])) %>%
+  mutate(OLD = rowSums(.[17:21])) %>%
+  mutate(TOTAL = rowSums(.[22:24])) %>%
+  filter(Year == 2018) %>%
+  filter(TOTAL > 0)
+```
+
+```{r}
+ggtern(data = agpop_mutated, aes(x = YOUNG, y = ACTIVE, z = OLD)) + 
+  geom_point()
+```
+
+```{r}
+ggtern(data = agpop_mutated, aes(x = YOUNG, y = ACTIVE, z = OLD)) + 
+  geom_point() +
+  labs(title = "Population structure, 2015") +
+  theme_rgbw()
+```

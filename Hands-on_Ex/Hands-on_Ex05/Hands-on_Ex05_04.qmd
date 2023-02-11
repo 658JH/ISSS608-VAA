@@ -1,0 +1,102 @@
+---
+title: "Handson_Ex05"
+author: "Hou Tao"
+date: "11 Feb 2023"
+date-modified: "`r Sys.Date()`"
+execute: 
+  echo: true
+  eval: true
+  warning: false
+format: html
+editor: visual
+---
+
+# Building Ternary Plot with R
+
+### Installing Package
+
+```{r}
+pacman::p_load(GGally, parallelPlot, tidyverse)
+```
+
+### Data Preparation
+
+```{r}
+wh <- read_csv("data/WHData-2018.csv", show_col_types = FALSE)
+```
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12))
+```
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax",
+           alphaLines = 0.2,
+           boxplot = TRUE, 
+           title = "Parallel Coordinates Plot of World Happines Variables")
+```
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax",
+           alphaLines = 0.2,
+           boxplot = TRUE, 
+           title = "Multiple Parallel Coordinates Plots of World Happines Variables by Region") +
+  facet_wrap(~ Region)
+```
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax",
+           alphaLines = 0.2,
+           boxplot = TRUE, 
+           title = "Multiple Parallel Coordinates Plots of World Happines Variables by Region") +
+  facet_wrap(~ Region) + 
+  theme(axis.text.x = element_text(angle = 30))
+```
+
+```{r}
+ggparcoord(data = wh, 
+           columns = c(7:12), 
+           groupColumn = 2,
+           scale = "uniminmax",
+           alphaLines = 0.2,
+           boxplot = TRUE, 
+           title = "Multiple Parallel Coordinates Plots of World Happines Variables by Region") +
+  facet_wrap(~ Region) + 
+  theme(axis.text.x = element_text(angle = 30, hjust=1))
+```
+
+```{r}
+wh <- wh %>%
+  select("Happiness score", c(7:12))
+parallelPlot(wh,
+             width = 320,
+             height = 250)
+```
+
+```{r}
+parallelPlot(wh,
+             rotateTitle = TRUE)
+```
+
+```{r}
+parallelPlot(wh,
+             continuousCS = "YlOrRd",
+             rotateTitle = TRUE)
+```
+
+```{r}
+histoVisibility <- rep(TRUE, ncol(wh))
+parallelPlot(wh,
+             rotateTitle = TRUE,
+             histoVisibility = histoVisibility)
+```
