@@ -1,0 +1,159 @@
+---
+title: "Exercise 3: Uncover patterns of resale price of HDB in SG"
+author: "Hou Tao"
+date: "5 Feb 2023"
+date-modified: "`r Sys.Date()`"
+execute: 
+  echo: true
+  eval: true
+  warning: false
+format: 
+  html:
+    code-fold: false
+    code-tools: true
+linestretch: 2
+editor: visual
+---
+
+# 1. Overview
+
+# 2. Data
+
+https://data.gov.sg/dataset/resale-flat-prices
+
+# 3. xxx
+
+```{r}
+pacman::p_load(performance, see, crosstalk, plotly, gganimate, ggdist, ggstatsplot, sjmisc, tidyverse)
+```
+
+```{r}
+ds <- read_csv("data/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv", show_col_types = FALSE)
+
+```
+
+```{r}
+
+parse_remaining_lease <- function(txt) {
+  txt <- str_replace_all(txt, "years", ".")
+  txt <- str_replace_all(txt, "year", ".")
+  txt <- str_replace_all(txt, "months", "")
+  txt <- str_replace_all(txt, "month", "")
+  txt <- str_replace_all(txt, " ", "")
+  txt <- paste0(txt, 0)
+  return(round(as.numeric(txt), digits = 0))
+}  
+
+
+filtered_ds <- ds %>%
+  filter(flat_type == "3 ROOM" | flat_type == "4 ROOM" | flat_type == "5 ROOM")
+
+filtered_ds$year <- as.numeric(substring(filtered_ds$month, 0, 4))
+
+filtered_ds$remaining_lease <- parse_remaining_lease(filtered_ds$remaining_lease)
+
+filtered_ds$psm <- filtered_ds$resale_price / filtered_ds$floor_area_sqm
+
+filtered_ds
+  
+```
+
+```{r}
+gghistostats(
+  data = filtered_ds,
+  x = remaining_lease,
+  type = "bayes",
+  test.value = 60,
+  xlab = "remaining_lease"
+)
+```
+
+```{r}
+filtered_ds <- filtered_ds %>% 
+  mutate(remaining_lease_bins = 
+           cut(remaining_lease, 
+               breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125))
+)
+filtered_ds
+```
+
+```{r}
+gghistostats(
+  data = filtered_ds,
+  x = floor_area_sqm,
+  type = "bayes",
+  test.value = 60,
+  xlab = "floor_area_sqm"
+)
+```
+
+```{r}
+filtered_ds <- filtered_ds %>% 
+  mutate(floor_area_sqm_bins = 
+           cut(floor_area_sqm, 
+               breaks = c(0,50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160))
+)
+filtered_ds
+```
+
+# Trends of PSF
+
+```{r, fig.width=50}
+
+monthly_psm <- filtered_ds %>%
+  group_by(month) %>%
+  summarise(
+    n = n(),
+    mean_psm = mean(psm),
+    sd_psm = sd(psm),
+    .groups = 'drop'
+    ) %>%
+  mutate(se_psm = sd_psm / sqrt(n - 1))
+
+t_monthly_psm = DT::datatable(monthly_psm)
+
+h_monthly_psm <- highlight_key(monthly_psm)
+
+g <- ggplot(h_monthly_psm) +
+  geom_errorbar(
+    aes(x=month, 
+        ymin=mean_psm - se_psm, 
+        ymax=mean_psm + se_psm), 
+    width=0.2, 
+    colour="black", 
+    alpha=0.9, 
+    size=0.5) +
+  geom_point(aes
+           (x=month, 
+            y=mean_psm), 
+           stat="identity", 
+           color="red",
+           size = 1,
+           alpha=1) +
+  ggtitle("Trends of PSM") +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), )
+
+g_monthly_psm <- highlight(ggplotly(g), off="plotly_doubleclick")
+
+bscols(g_monthly_psm, t_monthly_psm, widths = c(7, 5), device = c("md"))
+
+```
+
+```{r}
+ggbarstats(filtered_ds, 
+           x = flat_type, 
+           y = floor_area_sqm_bins)
+```
+
+```{r}
+ggbarstats(filtered_ds, 
+           x = flat_type, 
+           y = remaining_lease_bins)
+```
+
+```{r}
+ggbarstats(filtered_ds, 
+           x = remaining_lease_bins, 
+           y = resale_price)
+```

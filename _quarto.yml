@@ -65,10 +65,7 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
-    grid: 
-      body-width: 2000px
-      sidebar-width: 100px
-      margin-width: 100px
+    page-layout: full
 
 editor: visual
 
