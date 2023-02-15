@@ -55,6 +55,8 @@ website:
           href: "Takehome_Ex/Takehome_Ex01/Takehome_Ex01.html"
         - text: "Take-home Exercise 2"
           href: "Takehome_Ex/Takehome_Ex02/Takehome_Ex02.html"
+        - text: "Take-home Exercise 3"
+          href: "Takehome_Ex/Takehome_Ex03/Takehome_Ex03.html"
     right:
       - href: index.qmd
         text: Home

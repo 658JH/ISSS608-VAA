@@ -1,0 +1,471 @@
+---
+title: "Exercise 3: Uncover patterns of resale price of HDB in SG"
+author: "Hou Tao"
+date: "5 Feb 2023"
+date-modified: "`r Sys.Date()`"
+execute: 
+  echo: true
+  eval: true
+  warning: false
+format: 
+  html:
+    page-layout: full
+    code-fold: false
+    code-tools: false
+    
+linestretch: 2
+editor: visual
+---
+
+# 1. Overview
+
+In this take-home exercise 3, we're going to use visual analytics techniques from R to discover the patterns of resale prices of public housing property within year 2022.
+
+# 2. Data
+
+Data set [*Resale flat prices based on registration date from Jan-2017 onwards*](https://data.gov.sg/dataset/resale-flat-prices){.external target="_blank"} form from [Department of Statistics, Singapore](https://www.singstat.gov.sg/){.external target="_blank"} to be used in this exercise.
+
+# 3. Get Started
+
+## 3.1 Import Libraries
+
+```{r}
+pacman::p_load(performance, parameters, ggdist, gganimate, ungeviz, plotly, tidyverse)
+```
+
+## 3.2 Load Data
+
+```{r}
+df <- read_csv("data/resale-flat-prices-2017-onwards.csv", show_col_types = FALSE)
+```
+
+## 3.3 Data Wrangling
+
+### 3.3.1 Data filtering
+
+This analysis is going to focus on the flat type from 3 ROOMs to 5 ROOMs within year 2022.
+
+```{r}
+mutated_df <- df %>%
+  filter(flat_type == "3 ROOM" | 
+         flat_type == "4 ROOM" | 
+         flat_type == "5 ROOM") %>%
+  mutate(year = as.character(substring(month, 0, 4))) %>%
+  mutate(month = as.character(substring(month, 6, 7))) %>%
+  mutate(floor_range = as.numeric(substring(storey_range, 6, 8))) %>%
+  filter(year == 2022)
+```
+
+### 3.3.2 Formatting renaming leases
+
+The remaining leases is in string format, data conversion from string to numeric format for better data analytics.
+
+```{r}
+format_remaining_lease <- function(t) {
+  t <- str_replace_all(t, "years", ".")
+  t <- str_replace_all(t, "year", ".")
+  t <- str_replace_all(t, "months", "")
+  t <- str_replace_all(t, "month", "")
+  t <- str_replace_all(t, " ", "")
+  return(round(as.numeric(t), digits = 1))
+}
+mutated_df$remaining_lease <- 
+  format_remaining_lease(mutated_df$remaining_lease)
+
+```
+
+### 3.3.3 Derive resale unit price Per Square Meter (PSM)
+
+In this study, Resale unit price per square meter (PSM) is going to be applied for subsequent resale price pattern analysis, the PSM is computed based on the floor area and the unit resale price.
+
+```{r}
+mutated_df$psm <- round(mutated_df$resale_price / mutated_df$floor_area_sqm, 
+                        digits = 2)
+
+ds <- mutated_df
+```
+
+### 3.3.4 Preview of Data
+
+Data previous for first three row from the data.
+
+```{r}
+head(ds, n = 3)
+```
+
+# 4. Factors impact on the trends of resale unit price
+
+## 4.1 Timing (e.g., Month)
+
+First of all, we first to analyzing the trends of the resale price changes for every month, it is shown that monthly resale price is moving upwards trends.
+
+```{r, fig.width=25, fig.height=30, warning = FALSE}
+
+ds42 <- ds %>%
+  group_by(month) %>%
+  summarise(n = n(), 
+            average = mean(psm), 
+            sd = sd(psm), 
+            .groups = "drop") %>%
+  mutate(se = sd / sqrt(n - 1)) %>%
+  mutate(min_3std = round(average - se * 3, digits = 3)) %>%
+  mutate(max_3std = round(average + se * 3, digits = 3))
+  
+hds42 <- highlight_key(ds42)
+
+p2 <- ggplot(data = hds42, 
+                aes(x = month, 
+                    y = average, 
+                    text=c(paste0("min: ", 
+                                  min_3std , 
+                                  "\nmax: ", 
+                                  max_3std)))) +
+  
+  geom_errorbar(aes(x = month,  
+                    ymin = min_3std,  
+                    ymax = max_3std), 
+                width=0.2, 
+                colour="skyblue", 
+                alpha=0.9) +
+  geom_point(aes(x = month, y = average), 
+             stat="identity", 
+             color="skyblue", 
+             size = 1, 
+             alpha=1) +
+  
+  ggtitle("Trends of Resale Unit Price per Month") +
+  
+  labs(x = "Month", 
+       y = "Price per Square Meter (SGD)") +
+  
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 80, 
+                                   vjust = 0.5, 
+                                   hjust=1)) 
+
+
+
+p2 <- ggplotly(p2, width = 620, height = 400)
+
+p2 <- highlight(ggplotly(p2), off="plotly_doubleclick")
+
+p2
+```
+
+## 4.2 Location (e.g., Town)
+
+Upon understand the trends of resale unit price goes high, we now try to see the price of each town, it is shown that the central area has high resale unit price followed by Queenstown. it turns out that the location of the town has significant impact on resale unit price in Singapore.
+
+```{r, fig.width=25, fig.height=30, warning = FALSE}
+p1 <- ds %>%
+  mutate(town = fct_reorder(town, desc(psm), 
+                            .fun = "mean")) %>%
+  ggplot(aes(x = town, y = psm)) +
+  geom_violin(fill = "skyblue", linewidth = 0.1, 
+              draw_quantiles = c(0.25, 0.5, 0.75)) + 
+  stat_summary(geom = "point", 
+               fun = "mean", 
+               colour = "navy", 
+               size = 0.5) + 
+  xlab("Town Area") +
+  ylab("Price per Square Meter (SGD)") +
+  ggtitle("Trends of Resale Unit Price per Town")+
+  theme_bw() + 
+  theme(legend.position = "top", 
+        legend.box.just = "top",
+        legend.box = "horizontal",
+        legend.direction = "horizontal",
+        axis.text.x = element_text(angle = 55, 
+                                   hjust=0.2))
+  
+p1 <- ggplotly(p1, width = 780, height = 600)
+
+
+p1
+
+```
+
+## 4.3 Model of Flat (e.g., flat model)
+
+The chart below shows that both float models are also matters.
+
+It is shown that Type S1, Type S2, DBSS, Premium Apartment, and Preimum Apartment Loft and Terrace are having dominant advantages over flat models such as Adjoined flat, Model A2, Model A-Maisonette.
+
+It also reveal that the location still matters in resale price, for example, Bukit Merah are more expensive than Queenstown on the same flat type "Improved" even the storey range of Queenstown is higher than Bukit Merah.
+
+```{r, fig.width=30,  warning = FALSE}
+
+ds43 <- ds %>% 
+    group_by(storey_range, flat_model, town, remaining_lease) %>%
+    summarise(n = n(), 
+              average = mean(psm), 
+              sd = sd(psm), 
+              .groups = "drop")
+
+p3 <- ggplot(data = ds43, aes(x = flat_model, 
+                            y = average, 
+                            color = town,
+                            shape = storey_range)) +
+  geom_point(size = 0.7) +
+  scale_color_discrete(name = "Town") +
+  scale_shape_discrete(name = "Storey Range") +
+  ggtitle("Resale Unit Price vs Flat Model vs Storey Range vs Town") +
+  xlab("Flat Model") +
+  ylab("Price per Square Meter (SGD)")+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 35, 
+                                   hjust=0.2)) 
+
+p3 <- ggplotly(p3, width = 780, height = 480) %>%
+  layout(legend = list(orientation = "h"))
+
+p3
+
+```
+
+## 4.4 Age of the flat (e.g., Remaining lease years)
+
+The chart below shows that new flat are dominant by Model A, Preimum Apartment, DBSS, those flat are easier to have a better resale unit price than Standard, Improved and New Genernation flat model in Singapore.
+
+```{r, fig.width=30,  warning = FALSE}
+
+ds43 <- ds %>% 
+    group_by(storey_range, flat_model, town, remaining_lease) %>%
+    summarise(n = n(), 
+              average = mean(psm), 
+              sd = sd(psm), 
+              .groups = "drop")
+
+p3 <- ggplot(data = ds43, aes(x = remaining_lease, 
+                            y = average, 
+                            color = flat_model,
+                            shape = storey_range)) +
+  geom_point(size = 0.7) +
+  scale_color_discrete(name = "Town") +
+  scale_shape_discrete(name = "Storey Range") +
+  ggtitle("Resale Unit Price vs Remaning Lease Years vs Town") +
+  xlab("Remaning Lease Years") +
+  ylab("Price per Square Meter (SGD)")+
+  theme_bw()+
+  theme(axis.text.x = element_text(vjust = -1),
+        legend.position = "none")
+
+p3 <- ggplotly(p3, width = 780, height = 480) %>%
+  layout(legend = list(orientation = "h"))
+
+p3
+
+```
+
+## 4.5 Sizing of the flat (e.g., flat area)
+
+The chart below shows that resale price is not directly has linearship relationship versus floor area, it is still dominant by the location, storey range by remaining years.
+
+```{r, fig.width=30,  warning = FALSE}
+
+ds44 <- ds %>% 
+    group_by(floor_area_sqm, town, storey_range) %>%
+    summarise(n = n(), 
+              resale_price = mean(resale_price), 
+              sd = sd(resale_price), 
+              .groups = "drop")
+
+p4 <- ggplot(data = ds44, aes(x = floor_area_sqm, 
+                            y = resale_price, 
+                            color = town,
+                            shape = storey_range)) +
+  geom_point(size = 0.7) +
+  scale_color_discrete(name = "Flat Model") +
+  ggtitle("Trends of Resale price vs Floor Area vs Storey Range vs Town") +
+  xlab("Floor Area (PSM)") +
+  ylab("Resale Price (SGD)")+
+  theme_bw()+
+  theme(axis.text.x = element_text(vjust = -1),
+        legend.position = "none") 
+
+p4 <- ggplotly(p4, width = 780, height = 480) %>%
+  layout(legend = list(orientation = "h"))
+
+p4
+
+```
+
+## 4.6 View sight of the flat (e.g., storey range of the flat)
+
+The chart below reveal that the price has positive relationship versus the storey range of flat, higher storey always having higher price in singapore.
+
+```{r, fig.width=25, fig.height=30, warning = FALSE}
+
+p4 <- ds %>%
+  
+  mutate(storey_range = 
+           fct_reorder(storey_range, desc(psm), 
+                            .fun = "mean")) %>%
+  
+  ggplot(aes(x = storey_range, y = psm)) +
+  
+  stat_dist_gradientinterval(fill_type = "segments",
+                             show.legend = TRUE,
+                             fill = "skyblue")+
+  
+  geom_hpline(data = sampler(10, group = flat_model), 
+              color = "#D55E00", size = 0.3) +
+  
+  theme_bw()+
+  
+  theme(axis.text.x = element_text(angle = 80, 
+                                   vjust = 0.3, 
+                                   hjust=0.1), 
+        legend.position = "right") +
+  
+  transition_states(.draw, 1, 3) +
+  
+  labs(title = "Resale unit price per Storey Range", 
+       ylab = "Price per Square Meter (SGD)",
+       xlab = "Storey Range")
+
+p4
+```
+
+# 5. Oneway ANOVA Test
+
+## 5.1 One-way ANOVA test on resale unit price by flat type
+
+One-Way ANOVA test on the resale unit price per flat type is able help to understand the signficance of resale unit price vs flat type, it turn out the flat type does slightly difference among each flat type.
+
+```{r, fig.width=10}
+
+ggstatsplot::ggbetweenstats(
+  data = ds,
+  x = flat_type, 
+  y = psm,
+  type = "np",
+  mean.ci = TRUE, 
+  pairwise.comparisons = TRUE, 
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = TRUE,
+  xlab = "Flat Type",
+  ylab = "Price per Square Meter (SGD)",
+  title = "One-way ANOVA test on resale unit price by flat type"
+)
+
+```
+
+## 5.2 One-way ANOVA test on resale unit price by flat model
+
+To further understand the resale unit price on the flat itself, one-way ANOVA test is conducted on the flat model. it is tested and proved that the flat mode will having impact on the price.
+
+```{r, fig.width=10, fig.height=15, warning=FALSE}
+
+ggstatsplot::ggbetweenstats(
+  data = ds,
+  x = flat_model, 
+  y = psm,
+  type = "np",
+  mean.ci = FALSE, 
+  pairwise.comparisons = FALSE, 
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = FALSE,
+  xlab = "Storey Range",
+  ylab = "Price per Square Meter (SGD)",
+  title = "One-way ANOVA test on resale unit price by storey range"
+)+
+  theme_bw()+
+  theme(axis.text.x = 
+          element_text(
+            angle = 80, 
+            vjust = 0.3, 
+            hjust=0.1))
+
+```
+
+## 5.3 Correlation Matrix on flat area, remaining leases, resale price, floor range and unit price (psm)
+
+We also try to analysis the correlations among flat area, remaining leases, resale price, floor range and unit price (psm), chat shown that the PSM having positive relationship with floor range and more ramining years of flat will have better resale price.
+
+```{r, fig.width=14, fig.height = 5, collapse=TRUE}
+
+ggstatsplot::grouped_ggcorrmat(
+  data = ds,
+  cor.vars = c(6, 9, 10, 12, 13),
+  grouping.var = flat_type,
+  type = "np",
+  p.adjust.methods = "holm",
+  plotgrid.args = list(ncol = 3),
+  ggcorrplot.args = list(outline.color = "black", 
+                         hc.order = TRUE,
+                         tl.cex = 10),
+  annotation.args = list(
+    tag_levels = "a",
+    title = "Correlogram for Resale Price",
+    subtitle = "The measures are: flat area, remaining leases, resale price, floor range and unit price (psm)"
+  )
+)
+
+```
+
+# 6. Model Diagnostic
+
+upon all factors analyized using EDA approach, we could also model the resale price factors using models in R.
+
+Resale price of flat can be modelled based on all factors - town area, flat type, storey range, floor area, flat model, remaining lease and unit price (psm). then, output the model for analysis.
+
+```{r}
+
+model <- lm(data = ds, 
+              resale_price ~ town + flat_type + storey_range + 
+              floor_area_sqm + flat_model + remaining_lease + psm)
+
+model
+```
+
+Check correlation of model attributes based on the model constructed.
+
+```{r}
+check_collinearity(model)
+```
+
+Perform model diagnostic through complete check for models
+
+```{r, fig.width = 10, fig.height= 15, warning=FALSE}
+check_model(model)
+```
+
+#### 6.2 checking for multicolinearity for refined model
+
+Revise the model to remove high correlated variables and based on the correlation analysis and perform model diagnostic through complete check for models.
+
+```{r, fig.width = 10, fig.height= 15, warning=FALSE}
+
+rev_model <- lm(data = ds, resale_price ~ floor_area_sqm + flat_model + psm + remaining_lease)
+
+check_model(rev_model)
+
+```
+
+#### 6.3 Visualising Regression Parameters
+
+We can visualize the parameters for the regression model below, the model also reveal that Preminum Apartment and Type S1 are having positive impact on the resale price.
+
+```{r}
+plot(parameters(rev_model))
+```
+
+# 7. Summary
+
+The study of Singapore public housing pricing are having many different factors, such as location, age of flat, flat model, size of flat from overall perspective.
+
+People always got preferences, for example, if a person prefer to living at Ang Mo Kio, or Bishan, then, flat model, age of the flat, and location of the flat within the area, storey of the flat are become next few factors to be concerned when a people plan to buy a flat.
+
+In summary, this exercise with EDA provides better insight for people to understand how to move forward to choose their dream home at reasonable cost in Singapore
+
+# 8. Reflaction
+
+This exercise shows us that there are two approaches to allow us to analyze the factors with regard to the information of interest. we can have different options based on our target audience and use cases.
+
+-   To public users with less statistical knowledge audience, EDA approach can be adopted to provide a better view and insight into the data through visualization.
+
+-   To develop a statistical model for prediction and forecast, a statistical model approach can be adapted to have various statistical analysis visualization for internal communication and business model development.
