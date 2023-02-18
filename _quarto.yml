@@ -27,6 +27,8 @@ website:
           href: "Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05_03.html"
         - text: "Hands-on Exercise 5 - Building Parallel Coordinates Plot with R"
           href: "Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05_04.html"
+        - text: "Hands-on Exercise 5 - Visualising and Analysing Time-oriented Data"
+          href: "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html"
     - text: "In-class Exercise"
       menu:
         - text: "In-class Exercise 1"
@@ -57,6 +59,8 @@ website:
           href: "Takehome_Ex/Takehome_Ex02/Takehome_Ex02.html"
         - text: "Take-home Exercise 3"
           href: "Takehome_Ex/Takehome_Ex03/Takehome_Ex03.html"
+        - text: "Take-home Exercise 4"
+          href: "Takehome_Ex/Takehome_Ex03/Takehome_Ex04.html"
     right:
       - href: index.qmd
         text: Home

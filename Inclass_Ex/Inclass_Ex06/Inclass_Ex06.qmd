@@ -10,3 +10,19 @@ execute:
 format: html
 editor: visual
 ---
+
+# Cycle plot by Tableau
+
+https://public.tableau.com/app/profile/jerry.hou/viz/arrival_by_air_pivot/Dashboard1?publish=yes
+
+# heatmap
+
+https://public.tableau.com/app/profile/jerry.hou/viz/heatmap_16766990223270/Heatmap?publish=yes
+
+# Animated Population Bubble Plot
+
+https://public.tableau.com/app/profile/jerry.hou/viz/AnimatedPopulationBubblePlot/AnimatedPopulationBubblePlot?publish=yes
+
+# Slopegraph
+
+https://public.tableau.com/app/profile/jerry.hou/viz/Slopegraphs_16766992077440/Slopegraph?publish=yes
