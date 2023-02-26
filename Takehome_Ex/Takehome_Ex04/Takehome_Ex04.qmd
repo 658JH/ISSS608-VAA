@@ -1,5 +1,5 @@
 ---
-title: "Exercise 4: Challenges and Opportunities"
+title: "Exercise 4: Singapore bilateral trade during COVID-19"
 author: "Hou Tao"
 date: "17 Feb 2023"
 date-modified: "`r Sys.Date()`"
@@ -11,9 +11,1006 @@ format:
   html:
     page-layout: full
     code-fold: false
-    code-tools: false
+    code-tools: true
     
 linestretch: 2
 editor: visual
 ---
+
+# Singapore Trade
+
+## R Libraries
+
+```{r}
+pacman::p_load(ggstatsplot, CGPfunctions, ggiraph, 
+               ggthemes, ggHoriPlot, ggrepel, ggbraid, 
+               gganimate, lubridate, plotly, tidyr, readxl, tidyverse)
+```
+
+This exercise is applying R libraries such as ggbraid, gganimate, ggHoriPlot and CGPfunctions to analysis time series data in Singapore global trade analysis.
+
+-   ggbraid: it provides a new stat to provide effect visualization of presenting differences between import trades and export trades, easy to public audience.
+-   gganimate: it provides animated effect to visualize trade movement over time, it is animated moment effect and easy to the public audience.
+-   ggHoriPlot: it provides effective visualization when comes to comparing trade surplus, deficit, and balance among others, it is easy to public audience.
+-   CGPfunctions: it presents both trends of data and effective visualization for giving data for analytics, it is better for the public with an analytics background.
+
+## Raw Data Preparation
+
+The data file downloaded from Merchandise Trade provided by Department of Statistics, Singapore (DOS) are having "T1" for Merchandise Imports By Region/ Market, Monthly, and "T2" for Merchandise Exports By Region/ Market, Monthly from 1976 Jan to 2023 Jan.
+
+This study will focus on period from Jan 2020 to Dec 2022, hence, new two worksheets "Imports" and "Exports" are created from "T1" and "T2" from Jan 2020 to Dec 2022 respectively.
+
+To maintain a clean R code, this study also derived market and region mapping based on the data downloaded from the Department of Statistics, Singapore (DOS).
+
+## Data Importing
+
+Loading import trade, export trade, and region and market names into R.
+
+```{r}
+raw_imports <- read_excel("data/Merchandise Trade.xlsx", sheet = "Imports")
+raw_exports <- read_excel("data/Merchandise Trade.xlsx", sheet = "Exports")
+raw_markets <- read_excel("data/Merchandise Trade.xlsx", sheet = "Markets")
+```
+
+## Data Processing
+
+### Data transformation
+
+To visualize the data using R, the data in pivotal table format need to be transformed into row column format for better process using tidyr.
+
+```{r}
+## transform data into pivot longer
+transform_data <- function(ds){
+  trades <- pivot_longer(
+    ds,
+    cols = c(names(ds)[-1]), 
+    names_to = "month", 
+    values_to = "volume"
+  )
+  return (trades)
+}
+# transform import trade data
+imports <- transform_data(raw_imports)
+# transform export trade data
+exports <- transform_data(raw_exports)
+
+# standardize the column names
+colnames(imports) <- c("market","year_month", "volume")
+colnames(exports) <- c("market","year_month", "volume")
+```
+
+### Unit Conversion
+
+The existing data are having two units "Thousand Dollars" and "Million Dollars".
+
+In this exercise, Unit "Billion Dollars (B)" are applied to all data for consistency.
+
+and also the name of Total Merchandise are applied to both Imports and Exports.
+
+```{r}
+standardize_data <- function(ds){
+  
+  ## standardize unit value of 
+  ##  "Thousand Dollars" 
+  ##  to 
+  ##  "Million Dollars"
+  ds$volume <- ifelse(grepl("Thousand Dollars", ds$market), 
+                      ds$volume * 0.000001, 
+                      ds$volume * 0.001)
+  
+  ## remove unit after unit standardized
+  ds$market <- gsub(" \\(Thousand Dollars\\)", 
+                    "", 
+                    ds$market)
+  
+  ## remove unit after unit standardized
+  ds$market <- gsub(" \\(Million Dollars\\)", 
+                    "", 
+                    ds$market)
+  
+  ## standardize name
+  ds$market <- gsub("Total Merchandise Imports", 
+                    "Total Merchandise", 
+                    ds$market)
+  
+  ## standardize name
+  ds$market <- gsub("Total Merchandise Exports", 
+                    "Total Merchandise", 
+                    ds$market)
+  # format date 
+  ds$year_month <- as.Date(paste0(ds$year_month, " 01"),
+                      format = "%Y %b %d")
+  
+  return (ds)
+}
+
+imports <- standardize_data(imports)
+exports <- standardize_data(exports)
+
+```
+
+### Data Mergeing
+
+Given both import and export trade data cleaned and standardized, it can be joined into one data set for data visualization.
+
+```{r}
+## merge two data sets together
+trades_wide <- merge(imports, exports, by = c("market", "year_month"))
+
+## update name
+colnames(trades_wide) <- c("market","year_month", "imports", "exports")
+
+## compute the total trade
+trades_wide$total_trades <- trades_wide$exports + trades_wide$imports
+
+## compute the trade differences
+trades_wide$trade_balance <- trades_wide$exports - trades_wide$imports
+
+```
+
+### Data Combining
+
+Given both import and export trade data cleaned and standardized, it can be combined into one data set for data visualization.
+
+```{r}
+## merge two data sets together
+imports$trade_type = "import"
+exports$trade_type = "export"
+trades_long <- rbind(imports, exports)
+```
+
+### Preview of Data
+
+The final data are prepared as follows for the trade analysis of Singapore with other markets in the world.
+
+```{r}
+# function to display data in datatable format
+display_data <- function(ds){
+  dt <- DT::datatable(ds, options = list(pageLength = 3))
+  return (dt)
+}
+
+```
+
+::: panel-tabset
+#### Import Trades
+
+```{r}
+display_data(imports)
+```
+
+#### Export Trades
+
+```{r}
+display_data(exports)
+```
+
+#### Import & Export Trades
+
+```{r}
+display_data(trades_long)
+```
+
+#### Balance of Trades
+
+```{r}
+display_data(trades_wide)
+```
+
+#### Market and Regions
+
+```{r}
+display_data(raw_markets)
+```
+:::
+
+## Common Functions
+
+#### Utility Functions
+
+Customized colors for trade, and a function to select colors based on the trade data.
+
+```{r}
+colour_trade_surplus <- c("#80cfc5")
+colour_trade_deficit <- c("#faa1aa")
+colors_trade_mixed   <- c("#faa1aa", "#80cfc5")
+
+tool_colors_long <- function(ds){
+  
+  v <- unique(ds$export > ds$import)
+  
+  if(length(v) > 1){
+    return (colors_trade_mixed)
+  }
+  else
+  {
+    if(v[1] == "TRUE"){
+      return (colour_trade_surplus)
+    }else{
+      return (colour_trade_deficit)
+    }
+  }
+}
+```
+
+A tool function to adjust the x-axis label direction for better visualization.
+
+```{r}
+
+tool_label <- function(a){
+  t <- element_text(angle = a, 
+                    vjust = 0.3, 
+                    hjust=0.1)
+  return (t)
+}
+```
+
+A function to filter data by market name interested.
+
+```{r}
+filter_by_markets <- function(ds, marketnames){
+  filtered_ds <- ds %>%
+    subset(market %in% marketnames) %>%
+    mutate(market = fct_reorder(market, 
+                                desc(volume), 
+                                .fun="sum"))
+  return (filtered_ds)
+}
+
+filter_by_markets_wide_wo_sort <- function(ds, marketnames){
+  filtered_ds <- ds %>%
+    subset(market %in% marketnames)
+  return (filtered_ds)
+}
+```
+
+A function to filter data by a region name interested.
+
+```{r}
+
+filter_by_region <- function(ds, regionName, topN){
+  
+  regional_market <- filter(raw_markets, region == regionName)
+  
+  ms <- ds %>% 
+    subset(market %in% regional_market$market)
+  
+  fs <- ms %>% 
+    group_by(market) %>%
+    summarise(total_volume = sum(volume)) %>%
+    arrange(desc(total_volume)) %>%
+    head(topN) %>%
+    select(market)
+  
+  rs <- ms %>%
+    subset(market %in% fs$market) %>%
+    mutate(market = fct_reorder(market, 
+                                desc(volume), 
+                                .fun="sum"))
+  
+  return (rs)
+}
+```
+
+A function to filter data based on trade volume.
+
+```{r, fig.height=10, fig.width=8}
+
+filter_volume_trades <- function(ds, topN){
+  
+  ms <- ds %>% 
+    subset(market %in% raw_markets$market)
+  
+  fs <- ms %>% 
+    group_by(market) %>%
+    summarise(total_volume = sum(total_trades)) %>%
+    arrange(desc(total_volume)) %>%
+    head(topN) %>%
+    select(market)
+  
+  rs <- ms %>%
+    subset(market %in% fs$market) %>%
+    mutate(market = fct_reorder(market, 
+                                desc(total_trades), 
+                                .fun="sum"))
+  
+  rs$year <- as.character(year(rs$year_month))
+  
+  rs$mth_val <- as.integer(month(rs$year_month))
+  
+  rs$month <- format(rs$year_month, "%b")
+  
+  return (rs)
+}
+
+```
+
+#### Visualization Functions
+
+A function to plot ggbraid chart to visualize the trades for a given dataset.
+
+```{r}
+trade_view <- function(ds_pivot_long, title, plt_per_row){
+  ds_pivot_wide <- pivot_wider(ds_pivot_long, 
+                               names_from = trade_type, 
+                               values_from = volume)
+  
+  colors_schema <- tool_colors_long(ds_pivot_wide)
+  
+  plt <- ggplot() +
+    
+    geom_line(data = ds_pivot_long, 
+              aes(x = year_month, 
+                  y = volume, 
+                  linetype = trade_type)) +
+    
+    geom_braid(data = ds_pivot_wide, 
+               aes(x = year_month, 
+                   ymin = import, 
+                   ymax = export, 
+                   fill = export > import), 
+               alpha = 0.7, 
+               method = "line",
+               show.legend = FALSE) +
+    
+    scale_fill_manual(values = colors_schema) +
+    
+    scale_x_date(date_breaks = "3 month", 
+                 date_labels = "%b %Y") +
+    
+    labs(title = title)+
+    ylab(label = "Trade Volume (B)") +
+    xlab(label = "Month / Year") +
+    
+    theme_bw()+
+    theme(plot.title = element_text(hjust = 0.5),
+          axis.text.x = tool_label(90),
+          legend.position = "top") + 
+    
+    facet_wrap(~ market, ncol = plt_per_row)
+  
+  return (plt)
+}
+```
+
+A function to plot gganimate point chart to visualize of trade movement.
+
+```{r}
+trade_animation <- function(ds, xtitle){
+  
+  plt <- ds %>%
+    
+        ggplot(aes(x = imports, 
+                   y = exports, 
+                   size = total_trades, 
+                   colour = market)) +
+    
+        geom_point(alpha = 0.6, 
+                   show.legend = TRUE) +
+    
+        geom_abline(intercept = 0, 
+                    slope = 1, 
+                    color = "grey",
+                    linetype = "dashed") +
+    
+        scale_size(range = c(3, 30)) +
+    
+        geom_text(aes(label = paste0(round(total_trades, 2))), 
+                      size = 3,
+                      color = "black") +
+    
+        labs(title = xtitle, 
+             subtitle = 'Month: {format(frame_time, "%b %Y")}')+
+        xlab(label = "Imports Volume (B)") +
+        ylab(label = "Exports Volume (B)") +
+    
+        transition_time(year_month) +
+    
+        ease_aes("linear") +
+    
+        theme_bw() +
+        theme(legend.position = "top",
+              legend.title.align = 0.5) +
+    
+        coord_equal()
+  
+  plt <- plt + guides(size = FALSE)
+  
+  aplt <- animate(plt, duration = 30)
+  
+  return (aplt)
+
+}
+```
+
+A function to plot a ggbraid chart for a given market (e.g., Malaysia, etc)
+
+```{r}
+
+trade_view_by_market <- function(trade_markets, title, plt_per_row){
+  
+  ds_pivot_long <- filter_by_markets(
+    trades_long, 
+    trade_markets)
+  
+  trade_view(ds_pivot_long, title, plt_per_row)
+}
+
+```
+
+A function to plot a ggbraid chart for a given region (e.g., Europe, etc)
+
+```{r}
+
+trade_view_by_region <- function(regionName, title, topN, plt_per_row){
+
+    ds_pivot_long <- filter_by_region(
+    trades_long, 
+    regionName,
+    topN)
+  
+  trade_view(ds_pivot_long, title, plt_per_row)
+}
+```
+
+# Visualization
+
+## Singapore top 15 trade markets (2020 - 2022)
+
+First all, gganimate is applied to visualize the trade movement on the top 15 markets traded with Singapore from Jan 2020 to Dec 2022.
+
+The movement of circles on the chat depicts trends of trade between Singapore and target trade market:
+
+\- The circle above the slope line represents that Singapore exports more than imports from the target market, it will results in trade surplus.
+
+\- The circle below the slope line represents that Singapore exports less than imports from the target market, it will results in trade deficit.
+
+::: panel-tabset
+### Top Traded Markets
+
+```{r, fig.height=25, fig.width=20}
+filter_top_trades <- function(ds, topN){
+  
+  ms <- ds %>% 
+    subset(market %in% raw_markets$market)
+  
+  fs <- ms %>% 
+    group_by(market) %>%
+    summarise(total_volume = sum(total_trades)) %>%
+    arrange(desc(total_volume)) %>%
+    head(topN) %>%
+    select(market)
+  
+  rs <- ms %>%
+    subset(market %in% fs$market) %>%
+    mutate(market = fct_reorder(market, 
+                                desc(total_trades), 
+                                .fun="sum"))
+  
+  rs$year <- as.character(year(rs$year_month))
+  
+  rs$mth_val <- as.integer(month(rs$year_month))
+  
+  rs$month <- format(rs$year_month, "%b")
+  
+  return (rs)
+}
+
+top_trade_markets <- filter_top_trades(trades_wide, 15)
+
+top_trade_markets$trade_size <- top_trade_markets$total_trades
+
+trade_animation(
+  top_trade_markets,
+  "Singapore top 15 trade markets (2020 - 2022)"
+)
+```
+
+### Surplus Traded Markets
+
+```{r, fig.height=25, fig.width=20}
+filter_surplus_trades <- function(ds, topN){
+  
+  ms <- ds %>% 
+    subset(market %in% raw_markets$market)
+  
+  fs <- ms %>% 
+    group_by(market) %>%
+    summarise(total_balance = sum(trade_balance)) %>%
+    arrange(desc(total_balance)) %>%
+    head(topN) %>%
+    select(market, total_balance)
+  
+  cs <- inner_join(ms, fs, by = c("market" = "market"))
+  
+  rs <- cs %>%
+    mutate(market = fct_reorder(market, 
+                                desc(total_balance), 
+                                .fun="sum"))
+  
+  return (rs)
+}
+
+top_surplus_trade <- filter_surplus_trades(trades_wide, 15)
+
+top_surplus_trade$trade_size <- top_surplus_trade$trade_balance
+
+trade_animation(
+  top_surplus_trade,
+  "Singapore top 15 surplus trade markets (2020 - 2022)"
+)
+
+```
+
+### Deficit Traded Markets
+
+```{r, fig.height=25, fig.width=20}
+
+filter_deficit_trades <- function(ds, topN){
+  
+  ms <- ds %>% 
+    subset(market %in% raw_markets$market)
+  
+  fs <- ms %>% 
+    group_by(market) %>%
+    summarise(total_balance = sum(trade_balance)) %>%
+    arrange(total_balance) %>%
+    head(topN) %>%
+    select(market, total_balance)
+  
+  cs <- inner_join(ms, fs, by = c("market" = "market"))
+  
+  rs <- cs %>%
+    mutate(market = fct_reorder(market, 
+                                total_balance, 
+                                .fun="sum"))
+  
+  return (rs)
+}
+
+top_deficit_trade <- filter_deficit_trades(trades_wide, 15)
+
+top_deficit_trade$trade_size <- top_deficit_trade$trade_balance
+
+trade_animation(
+  top_deficit_trade,
+  "Singapore top 15 deficit trade markets (2020 - 2022)"
+)
+
+```
+:::
+
+## Overview of Singapore trade (2020 - 2022)
+
+### Total volume of trade (2020 - 2022)
+
+```{r, fig.height=8, fig.width=10}
+title = "Total trade volume of Singapore (2020 - 2022)"
+markets = c("Total Merchandise")
+trade_view_by_market(markets, title, 1)
+
+```
+
+This chart has shown the total export trade and import trade of Singapore from Jan 2020 to Dec 2022.
+
+The trends of export trade volume charted by solid black line, and the trends of import trade volume charted by dotted black line.
+
+The export trade volume is higher than import trade volume during Jan 2020 \~ Dec 2022, hence, the area shown in light green color.
+
+The chart can easily visualized by public that Singapore had surplus trade during Jan 2020 \~ Dec 2022.
+
+### Total volume of trade among regions (2020 - 2022)
+
+```{r, fig.height=8, fig.width=10}
+title = "Total volume of trade among regions (2020 - 2022)"
+markets = c("America", "Asia", "Europe", "Oceania", "Africa", "European Union")
+trade_view_by_market(markets, title, 3)
+```
+
+This chart above has shown the total export trade and import trade of Singapore among different regions from Jan 2020 to Dec 2022.
+
+This chart tells that Singapore had trade dominant trade surplus in Asia and Oceania; but had trade deficit in Europe market.
+
+The chart can provide visualize effect to public that the size of surplus/deficit trade, as well as the trends of surplus/deficit trade on regional level.
+
+### Zoom in trades in regions (2020 - 2022)
+
+To further discover the market from different regions, in which Singapore had trade surplus or deficit for economic activities, trade surplus/deficit can be further zoomed into market level, such as Malaysia, United States, etc.
+
+From the second tab, It is shown that Sigapore had trade surplus with United States in year 2020, that's would be goods export from Singapore to United States when United States suffer from COVID-19 pandemic.
+
+After COVID-19 vaccines developed by US company, United States has slowly recovered from COVID-19, and trade between Singapore and United States become deficit, this would be Singapore has imported COVID-19 vaccines from US company, and US export to Singapore when US economy back to normal.
+
+::: panel-tabset
+### Aisa
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore trades in Asia markets (2020 - 2022)"
+trade_view_by_region("Asia", title, 12, 3)
+```
+
+### America
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore trades in America markets (2020 - 2022)"
+trade_view_by_region("America", title, 6, 3)
+```
+
+### Europe
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore trades in Europe markets (2020 - 2022)"
+trade_view_by_region("Europe", title, 12, 3)
+```
+
+### Oceania
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore trades in Oceania markets (2020 - 2022)"
+trade_view_by_region("Oceania", title, 6, 3)
+```
+:::
+
+Those charts plotted under each region provides further detailes of trades of Singapore in each market from different regions.
+
+In Asia markets, Singapore had surplus trade with Hong Kong, Indonesia, Thailand, Vietnam, India. had deficit trade with Malaysia, Taiwan, Republic of Korea and UAE.
+
+In America markets, Singapore had surplus trade with USA in year 2020, but had deficit trade with USA from 2021 to 2022; ahd deficit trade with Brazil, Mexico and Canada from 2020 to 2022.
+
+In Europe markets, Singapore had surplus trade with Netherlands, Belgium, Malta and Greece; and had deficit trade with Germany, France, Switzerland, UK, Italy, Spain and Sweden.
+
+In Oceania markets, Singapore had surplus trade Australia, New Zealand, Papua New Guinea, Guam, Fiji and New Caledonia.
+
+## Overview of Singapore top traded markets (2020 - 2022)
+
+The chart below provide details on Singapore top traded markets using ggbraid charts, so that it can be easier for public to view the top traded markets in numbers and trends.
+
+The first tab provided the top 15 markets that Singapore had large volume of trades in either imports or exports during 2020 \~ 2022.
+
+The second tab provided the top 15 markets that Singapore had surplus trade during 2020 \~ 2022.
+
+The third tab provided the top 15 markets that Singapore had deficit trade during 2020 \~ 2022.
+
+::: panel-tabset
+### Top Traded Markets
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore top 15 traded markets (2020 - 2022)"
+trade_view_by_market(top_trade_markets$market, title, 5)
+```
+
+### Surplus Traded Markets
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore top 15 surplus trade markets (2020 - 2022)"
+trade_view_by_market(top_surplus_trade$market, title, 5)
+```
+
+### Deficit Traded Markets
+
+```{r, fig.height=8, fig.width=10}
+title = "Singapore top 15 deficit trade markets (2020 - 2022)"
+trade_view_by_market(top_deficit_trade$market, title, 5)
+```
+:::
+
+### Balance of Trades Comparison
+
+To effectively compare the trade surplus, deficit and balance of trades with other markets interested, Horizon plots can greatly help to bring all the differences into single view for comparison.
+
+```{r, warning = FALSE, fig.height=10, fig.width=15}
+title <- "Balance of Trades Comparison, Singapore (2020 - 2022)"
+
+top_n_trades <- filter_volume_trades(trades_wide, 30)
+
+top_n_trades %>%
+  ggplot() + 
+  geom_horizon(aes(x = year_month, 
+                   y = trade_balance, 
+                   fill = trade_balance),
+               origin = "midpoint",
+               horizonscale = 12) +
+  scale_fill_hcl(palette = "RdBu", 
+                 reverse = T) +
+  facet_grid(market ~. ) +
+  scale_x_date(expand = c(0, 0), 
+               date_breaks = "1 month", 
+               date_labels = "%b %Y") +
+  xlab('Month / Year') +
+  ggtitle(title) +
+  theme_few() + 
+  theme(
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5),
+    panel.spacing.y=unit(0, "lines"),
+    axis.text = element_text(size = 12),
+    axis.text.x = tool_label(35),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.border = element_blank(),
+    strip.text.y = element_text(size = 8, 
+                                angle = 0, 
+                                hjust = 0)
+  )
+```
+
+From the visualization above, We can easily compare the trade surplus and deficit between Singapore and all the market shown, darker of the red color represents level of trade deficit, and darker of the blue color represent the level of trade surplus.
+
+
+## Single Market Analysis
+
+From all above charts, it is shown that Mainland China, Malaysia and United States are the top 3 market traded with Singapore, and Singapore had trade surplus and deficit in different period when trade with Mainland China and United States.
+
+To further understanding the details of trade among different individual markets, trade surplus or deficit can be discovered through Cyclical chart, reason of surplus or deficit can be discovered based on the time and seasonal effects during that time.
+
+```{r}
+top_30_markets <- filter_volume_trades(trades_wide, 30)
+```
+
+```{r, warning=FALSE, fig.height=4, fig.width=16}
+
+single_market_analysis <- function(ds, market_name){
+  
+  market_ds <- ds %>%
+    filter(market == market_name) %>%
+      mutate(month = fct_reorder(month, mth_val))
+  
+  market_ds$Imports_Trade <- c(paste0(
+    "\nYear: ", market_ds$year,
+    "\nMonth: ", market_ds$month,
+    "\nVolume (B): ", market_ds$imports
+  ))
+  
+  market_ds$Export_Trade <- c(paste0(
+    "\nYear: ", market_ds$year,
+    "\nMonth: ", market_ds$month,
+    "\nVolume (B): ", market_ds$exports
+  ))
+  
+  market_ds$Balance_of_Trade <- c(paste0(
+    "\nYear: ", market_ds$year,
+    "\nMonth: ", market_ds$month,
+    "\nBalance (B): ", market_ds$trade_balance
+  ))
+  
+  p <- ggplot() +
+    geom_line(data = market_ds,
+              aes(x = year, 
+                  y = imports, 
+                  group = month,
+                  tooltip = Imports_Trade), 
+              color = "#faa1aa", 
+              linewidth = 1) + 
+    geom_line(data = market_ds,
+              aes(x = year, 
+                  y = exports, 
+                  group = month,
+                  tooltip = Export_Trade), 
+              color = "#80cfc5", 
+              linewidth = 1) + 
+    geom_line(data = market_ds,
+              aes(x = year, 
+                  y = trade_balance, 
+                  group = month,
+                  tooltip = Balance_of_Trade),
+              color = "#74add1", 
+              linewidth = 1) + 
+    facet_grid( ~ month ) +
+    xlab('Month / Year') +
+    ylab("Trade Volume (B)") +
+    ggtitle(paste0(
+            "Singapore trade import / export with ",
+            market_name,
+            " market (2020 - 2022)")) +
+    theme_bw() + 
+    theme(
+      panel.spacing.y=unit(0, "lines"),
+      strip.text.y = element_text(size = 8, 
+                                  angle = 0, 
+                                  hjust = 0)  ) + 
+    theme(plot.title = element_text(hjust = 0.5),
+          axis.text.x = tool_label(90),
+          legend.position = "top")
+  
+  ggplotly(p, tooltip = c("Imports_Trade", 
+                          "Export_Trade", 
+                          "Balance_of_Trade"))
+
+}
+
+```
+
+For instance, the trade surplus between Singapore Mainland China happens in Jul, Aug, Sept and Oct could be related to 2 months Summer school holidays and 7 days National Day public holidays in China, there are many tourist from China to Singapore during that period.
+
+::: panel-tabset
+### Mainland China
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Mainland China")
+```
+
+### Malaysia
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Malaysia")
+```
+
+### United States
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "United States")
+```
+
+### Taiwan
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Taiwan")
+```
+
+### Hong Kong
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Hong Kong")
+```
+
+### Indonesia
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Indonesia")
+```
+
+### Korea
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Republic Of Korea")
+```
+
+### Japan
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Japan")
+```
+
+### Taiwan
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Taiwan")
+```
+
+### Thailand
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Thailand")
+```
+
+### Vietnam
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Vietnam, Socialist Republic Of")
+```
+
+```{r}
+top_markets_analysis <- filter_volume_trades(trades_wide, 15)
+
+```
+
+### Australia
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Australia")
+```
+
+### India
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "India")
+```
+
+### Philippines
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+single_market_analysis(top_30_markets, "Philippines")
+```
+:::
+
+## Major trade market analysis
+
+### Balances of Trades
+
+From all above charts, it is shown that Mainland China, Malaysia and United States are the top 3 market traded with Singapore, and Singapore had trade surplus and deficit in different period when trade with Mainland China and United States.
+
+Slope graph can greatly help to visualize the rate of trades between Singapore and target trade markets, it can discover how trade surplus and deficit over different period, such as monthly, quarterly, yearly.
+
+In the first tab, it shows Singapore had trade imports from many different markets.
+
+In the second tab, it shows Singapore had exports increases with all major markets yearly.
+
+In the third tab, it clearly shows that Singapore had great trade surplus when trading with Hong Kong and Indonesia, and it just maintained trade balances when trade with Mainland China market.
+
+```{r, warning=FALSE, fig.height=10, fig.width=16}
+top_15_trades <- filter_volume_trades(trades_wide, 15) %>%
+  group_by(market, year) %>%
+  summarise(
+    imports = sum(imports),
+    exports = sum(exports),
+    balance = sum(exports) - sum(imports),
+    .groups = "drop"
+  )
+
+```
+
+::: panel-tabset
+### Singapore Imports
+
+```{r, warning=FALSE, fig.height=10, fig.width=10}
+top_15_trades %>% 
+  mutate(yr = factor(year)) %>%
+  newggslopegraph(year, 
+                  imports,
+                  market, 
+                  XTextSize = 13,
+                  YTextSize = 4,
+                  TitleTextSize = 16,
+                  SubTitleTextSize = 12,
+                  CaptionTextSize = 8,
+                  Title = "Singapore Imports",
+                  SubTitle = "2020 - 2022",
+                  Caption = "Global Trade")
+
+```
+
+### Singapore Exports
+
+```{r, warning=FALSE, fig.height=10, fig.width=10}
+top_15_trades %>% 
+  mutate(yr = factor(year)) %>%
+  newggslopegraph(year, 
+                  exports,
+                  market, 
+                  XTextSize = 13,
+                  YTextSize = 4,
+                  TitleTextSize = 16,
+                  SubTitleTextSize = 12,
+                  CaptionTextSize = 8,
+                  Title = "Singapore Exports",
+                  SubTitle = "2020 - 2022",
+                  Caption = "Global Trade")
+
+```
+
+### Singapore Trade Balances
+
+```{r, warning=FALSE, fig.height=10, fig.width=10}
+top_15_trades %>% 
+  mutate(yr = factor(year)) %>%
+  newggslopegraph(year, 
+                  balance,
+                  market, 
+                  XTextSize = 13,
+                  YTextSize = 4,
+                  TitleTextSize = 16,
+                  SubTitleTextSize = 12,
+                  CaptionTextSize = 8,
+                  Title = "Singapore Trade Balance",
+                  SubTitle = "2020 - 2022",
+                  Caption = "Global Trade")
+
+```
+:::
+
+# Summary
+
+The study on impact of COVID-19 as well as the global economic and political dynamic in 2022 on Singapore bi-lateral trade, through all the data analysis through visualization, first of all, Singapore still have achieved trade surplus in global markets, even there are some market Singapore had trade deficit.
+
+COVID-19 has impacted Singapore economy, Singapore had great dependency on markets such as Malaysia, Taiwan, Indonesia, Korea, Japan for food supply.
+
+But Singapore had trade surplus from different market such as Hong Kong, Indonesia, Thailand, India, Australia, in which Singapore can export to them through delivery value-added services.
+
+# Reflection
+
+This exercise had provided greater chance to explorer visual analytics solutions on discover information hide in time series data through different data visual analytics solutions
+
+Different time series visual analytics solutions can provide different level of details to meet different level of needs for different type of audiences. A single solution won't be fit for all use cases, hence, adopt appropriate visual analytics based on the audiences and purpose would be the correct approach to do so.
+
 
