@@ -1,0 +1,13 @@
+name: Geodemo
+title: Geodemo
+username:
+account: tskam
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8419594
+bundleId: 6891629
+url: https://tskam.shinyapps.io/Geodemo/
+when: 1677482638.1373
+lastSyncTime: 1677482638.13731
+asMultiple: FALSE
+asStatic: FALSE
